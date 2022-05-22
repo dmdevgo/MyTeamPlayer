@@ -91,8 +91,13 @@ class MyTeamPlayerServer {
             }
             post("/video") {
                 val video = call.receiveParameters().getOrFail("video")
-                playQueue.offer(video)
-                call.respondRedirect("/")
+                    .trim()
+                    .replace("https://youtu.be/", "")
+
+                if (video.isNotBlank()) {
+                    playQueue.offer(video)
+                    call.respondRedirect("/")
+                }
             }
         }
     }
