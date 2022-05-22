@@ -1,94 +1,66 @@
 package me.dmdev.myteamplayer
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.html.*
-import io.ktor.server.netty.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.util.*
+import android.util.Log
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.YouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
-import kotlinx.html.body
-import kotlinx.html.form
-import kotlinx.html.h1
-import kotlinx.html.h4
-import kotlinx.html.head
-import kotlinx.html.input
-import kotlinx.html.li
-import kotlinx.html.link
-import kotlinx.html.p
-import kotlinx.html.title
-import kotlinx.html.ul
-import java.util.concurrent.LinkedBlockingQueue
 
-class MyTeamPlayer {
+class MyTeamPlayer(
+    private val server: MyTeamPlayerServer,
+    private val youTubePlayer: YouTubePlayer
+) {
 
-    private val playQueue = LinkedBlockingQueue<String>()
-    private var job: Job? = null
+    private val mainScope = MainScope()
+    private var state: State = State.IDLE
 
-    fun startServer() {
-        job = CoroutineScope(Dispatchers.IO).launch {
-            server.start(wait = true)
+    fun start() {
+        server.start()
+        youTubePlayer.addListener(youTubePlayerListener)
+        mainScope.launch {
+            while (true) {
+                if (state == State.IDLE) {
+                    val video = server.nextTrack()
+                    if (video != null) {
+                        state = State.PLAYING
+                        youTubePlayer.loadVideo(video, 0F)
+                    }
+                }
+                delay(1000)
+            }
         }
     }
 
-    fun stopServer() {
-        server.stop(1_000, 2_000)
-        job?.cancel()
+    fun stop() {
+        server.stop()
+        youTubePlayer.removeListener(youTubePlayerListener)
+        mainScope.cancel()
     }
 
-    private val server = embeddedServer(Netty, port = 8080) {
-        routing {
-            get("/") {
-                call.respondHtml(HttpStatusCode.OK) {
-                    head {
-                        title {
-                            +"MyTeamPlayer"
-                        }
-                        link()
-                    }
-                    body {
-                        h1 {
-                            +"My Team Player!"
-                        }
+    private enum class State {
+        IDLE, PLAYING
+    }
 
-                        form {
-                            action = "video"
-                            method = FormMethod.post
-                            p {
-                                input {
-                                    type = InputType.text
-                                    name = "video"
-                                }
-                            }
-                            p {
-                                input {
-                                    type = InputType.submit
-                                }
-                            }
-                        }
+    private val youTubePlayerListener = object : AbstractYouTubePlayerListener() {
+        override fun onError(youTubePlayer: YouTubePlayer, error: PlayerConstants.PlayerError) {
+            state = State.IDLE
+        }
 
-                        h4 {
-                            +"Play queue:"
-                        }
-
-                        ul {
-                            playQueue.forEach { li { +it } }
-                        }
-                    }
-                }
-            }
-            post("/video") {
-                val video = call.receiveParameters().getOrFail("video")
-                playQueue.offer(video)
-                call.respondRedirect("/")
+        override fun onStateChange(
+            youTubePlayer: YouTubePlayer,
+            state: PlayerState
+        ) {
+            if (state == PlayerState.ENDED) {
+                this@MyTeamPlayer.state = State.IDLE
             }
         }
     }

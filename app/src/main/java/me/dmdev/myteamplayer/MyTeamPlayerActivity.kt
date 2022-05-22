@@ -5,27 +5,34 @@ import android.app.Activity
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.text.format.Formatter
-import android.util.Log
-import android.widget.TextView
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.YouTubePlayerCallback
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 
 open class MyTeamPlayerActivity : Activity() {
 
-    private val player = MyTeamPlayer()
+    private val server = MyTeamPlayerServer()
+    private lateinit var youTubePlayerView: YouTubePlayerView
+    private var player: MyTeamPlayer? = null
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val textView = TextView(this)
-        textView.text = "Hello, Android TV!" + "\n ${getIpAddressInLocalNetwork()}"
-        textView.textSize = 48F
-        setContentView(textView)
-        player.startServer()
+        setContentView(R.layout.activity_my_team_player)
+        youTubePlayerView = findViewById(R.id.youtube_player_view)
+        youTubePlayerView.getYouTubePlayerWhenReady(object : YouTubePlayerCallback{
+            override fun onYouTubePlayer(youTubePlayer: YouTubePlayer) {
+                player = MyTeamPlayer(server, youTubePlayer)
+                player?.start()
+            }
+        })
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        player.stopServer()
+        player?.stop()
+        youTubePlayerView.release()
     }
 
     private fun getIpAddressInLocalNetwork(): String? {
