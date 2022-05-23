@@ -33,6 +33,7 @@ dependencies {
     val ktorVersion = "2.0.1"
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.leanback:leanback:1.0.0")
+    implementation("androidx.media2:media2-session:1.2.1")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-html-builder:$ktorVersion")

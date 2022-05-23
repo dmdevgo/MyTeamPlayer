@@ -40,14 +40,38 @@ class MyTeamPlayer(
         }
     }
 
-    fun stop() {
+    fun release() {
         server.stop()
         youTubePlayer.removeListener(youTubePlayerListener)
         mainScope.cancel()
     }
 
+    fun stop() {
+        youTubePlayer.pause()
+        state = State.STOPED
+    }
+
+    fun pause() {
+        youTubePlayer.pause()
+        state = State.PAUSED
+    }
+
+    fun play() {
+        state = if (state == State.PAUSED) {
+            youTubePlayer.play()
+            State.PLAYING
+        } else {
+            State.IDLE
+        }
+    }
+
+    fun skipToNext() {
+        youTubePlayer.pause()
+        state = State.IDLE
+    }
+
     private enum class State {
-        IDLE, PLAYING
+        IDLE, PLAYING, PAUSED, STOPED
     }
 
     private val youTubePlayerListener = object : AbstractYouTubePlayerListener() {
