@@ -1,5 +1,9 @@
 package me.dmdev.myteamplayer
 
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -26,12 +30,15 @@ import kotlinx.html.link
 import kotlinx.html.p
 import kotlinx.html.title
 import kotlinx.html.ul
+import org.json.JSONObject
 import java.util.concurrent.LinkedBlockingQueue
 
 class MyTeamPlayerServer {
 
-    private val playQueue = LinkedBlockingQueue<String>()
+    private val playQueue = LinkedBlockingQueue<MyVideo>()
     private var job: Job? = null
+
+    private val client = HttpClient(CIO)
 
     fun start() {
         job = CoroutineScope(Dispatchers.IO).launch {
@@ -42,10 +49,11 @@ class MyTeamPlayerServer {
     fun stop() {
         server.stop(1_000, 2_000)
         job?.cancel()
+        client.close()
     }
 
     fun nextTrack(): String? {
-        return playQueue.poll()
+        return playQueue.poll()?.id
     }
 
     private val server = embeddedServer(Netty, port = 8080) {
@@ -84,7 +92,7 @@ class MyTeamPlayerServer {
                         }
 
                         ul {
-                            playQueue.forEach { li { +it } }
+                            playQueue.forEach { li { +it.title } }
                         }
                     }
                 }
@@ -95,10 +103,19 @@ class MyTeamPlayerServer {
                     .replace("https://youtu.be/", "")
 
                 if (video.isNotBlank()) {
-                    playQueue.offer(video)
+                    val title = loadVideoTitle(video)
+                    playQueue.offer(MyVideo(title, video))
                     call.respondRedirect("/")
                 }
             }
         }
+    }
+
+    private suspend fun loadVideoTitle(videoId: String): String {
+        val response: HttpResponse =
+            client.get("https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=${videoId}&format=json")
+        val responseBody = response.bodyAsText()
+        val json = JSONObject(responseBody)
+        return json.getString("title")
     }
 }
