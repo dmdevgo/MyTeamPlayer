@@ -1,7 +1,7 @@
 package me.dmdev.myteamplayer
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -38,7 +38,7 @@ class MyTeamPlayerServer {
     private val playQueue = LinkedBlockingQueue<MyVideo>()
     private var job: Job? = null
 
-    private val client = HttpClient(CIO)
+    private val client = HttpClient(OkHttp)
 
     fun start() {
         job = CoroutineScope(Dispatchers.IO).launch {
