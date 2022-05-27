@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk = AndroidSdk.compile
+    compileSdk = rootProject.extra["android_sdk_compile"] as Int
 
     defaultConfig {
         applicationId = "me.dmdev.myteamplayer"
-        minSdk = AndroidSdk.min
-        targetSdk = AndroidSdk.target
+        minSdk = rootProject.extra["android_sdk_min"] as Int
+        targetSdk = rootProject.extra["android_sdk_target"] as Int
         versionCode = 1
         versionName = "1.0"
 
