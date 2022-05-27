@@ -1,6 +1,6 @@
 buildscript {
     val android_sdk_compile by extra(32)
-    val android_sdk_min by extra(23)
+    val android_sdk_min by extra(26)
     val android_sdk_target by extra(32)
     val compose_version by extra("1.2.0-beta02")
 }
