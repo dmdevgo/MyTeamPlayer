@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = AndroidSdk.compile
 
     defaultConfig {
         applicationId = "me.dmdev.myteamplayer"
-        minSdk = 21
-        targetSdk = 32
+        minSdk = AndroidSdk.min
+        targetSdk = AndroidSdk.target
         versionCode = 1
         versionName = "1.0"
 
