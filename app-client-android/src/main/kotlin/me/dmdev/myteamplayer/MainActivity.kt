@@ -5,14 +5,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import me.dmdev.myteamplayer.presentation.MainPm
 import me.dmdev.myteamplayer.presentation.MainPmFactory
 import me.dmdev.myteamplayer.serialization.JsonBundleStateSaver
 import me.dmdev.myteamplayer.ui.rememberWindowSizes
-import me.dmdev.myteamplayer.ui.screen.ConnectScreen
 import me.dmdev.myteamplayer.ui.screen.MainScreen
 import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
 import me.dmdev.premo.PmActivity

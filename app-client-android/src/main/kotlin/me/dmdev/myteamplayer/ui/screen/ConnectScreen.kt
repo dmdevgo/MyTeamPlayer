@@ -16,10 +16,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,14 +28,16 @@ import androidx.compose.ui.unit.dp
 import me.dmdev.myteamplayer.R
 import me.dmdev.myteamplayer.presentation.ConnectPm
 import me.dmdev.myteamplayer.ui.WindowSizes
-import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
 import me.dmdev.myteamplayer.ui.theme.custom_green_color
 
 @Composable
 fun ConnectScreen(
     serverAddress: String,
+    isConnecting: Boolean,
+    errorMessage: String,
     windowSizes: WindowSizes,
-    onServerAddressChange: ((String) -> Unit)
+    onServerAddressChange: ((String) -> Unit),
+    onConnectClick: (() -> Unit),
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -71,7 +73,14 @@ fun ConnectScreen(
                     autoCorrect = false
                 )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 4.dp)
+                    .alpha(if (errorMessage.isNotBlank()) 1f else 0f)
+            )
             Button(
                 modifier = Modifier.align(Alignment.End),
                 onClick = {}
@@ -83,14 +92,18 @@ fun ConnectScreen(
 }
 
 @Composable
-fun ConnectScreen(
+fun ConnectScreenBind(
     pm: ConnectPm,
     windowSizes: WindowSizes
 ) {
+    val state = pm.state.collectAsState().value
     ConnectScreen(
-        serverAddress = "0.0.0.0",
+        serverAddress = state.serverAddress,
+        isConnecting = state.isConnecting,
+        errorMessage = state.errorMessage,
         windowSizes = windowSizes,
-        onServerAddressChange = {}
+        onServerAddressChange = pm::onServerAddressChange,
+        onConnectClick = pm::onConnectClick,
     )
 }
 
@@ -99,7 +112,10 @@ fun ConnectScreen(
 fun ConnectScreenPreview() {
     ConnectScreen(
         serverAddress = "0.0.0.0",
+        isConnecting = false,
+        errorMessage = "No connection",
         windowSizes = WindowSizes.COMPACT,
-        onServerAddressChange = {}
+        onServerAddressChange = {},
+        onConnectClick = {}
     )
 }

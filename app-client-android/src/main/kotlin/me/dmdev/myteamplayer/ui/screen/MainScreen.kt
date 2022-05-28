@@ -3,10 +3,8 @@ package me.dmdev.myteamplayer.ui.screen
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import me.dmdev.myteamplayer.presentation.ConnectPm
 import me.dmdev.myteamplayer.presentation.MainPm
 import me.dmdev.myteamplayer.ui.AnimatedNavigationBox
@@ -23,7 +21,7 @@ fun MainScreen(pm: MainPm, windowSizes: WindowSizes) {
         popExitTransition = { _, _ -> slideOutHorizontally { height -> height } },
     ) { pm ->
         when (pm) {
-            is ConnectPm -> ConnectScreen(pm, windowSizes)
+            is ConnectPm -> ConnectScreenBind(pm, windowSizes)
             else -> {}
         }
     }
