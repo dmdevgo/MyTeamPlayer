@@ -1,9 +1,11 @@
 package me.dmdev.myteamplayer.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,26 +26,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.dmdev.myteamplayer.R
+import me.dmdev.myteamplayer.presentation.ConnectPm
+import me.dmdev.myteamplayer.ui.WindowSizes
 import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
 import me.dmdev.myteamplayer.ui.theme.custom_green_color
 
-@Preview(showBackground = true)
 @Composable
-fun ConnectScreen() {
-
-    var text = remember { mutableStateOf("") }
-
-    MyTeamPlayerTheme(useDarkTheme = true) {
+fun ConnectScreen(
+    serverAddress: String,
+    windowSizes: WindowSizes,
+    onServerAddressChange: ((String) -> Unit)
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .wrapContentSize()
                 .padding(8.dp)
+                .align(Alignment.Center)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher),
+                    painter = painterResource(R.mipmap.ic_launcher),
                     contentDescription = "My team player logo"
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -56,10 +61,10 @@ fun ConnectScreen() {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 modifier = Modifier.width(300.dp),
-                value = text.value,
+                value = serverAddress,
                 label = { Text("Server address") },
                 singleLine = true,
-                onValueChange = { text.value = it },
+                onValueChange = onServerAddressChange,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Go,
@@ -75,4 +80,26 @@ fun ConnectScreen() {
             }
         }
     }
+}
+
+@Composable
+fun ConnectScreen(
+    pm: ConnectPm,
+    windowSizes: WindowSizes
+) {
+    ConnectScreen(
+        serverAddress = "0.0.0.0",
+        windowSizes = windowSizes,
+        onServerAddressChange = {}
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+fun ConnectScreenPreview() {
+    ConnectScreen(
+        serverAddress = "0.0.0.0",
+        windowSizes = WindowSizes.COMPACT,
+        onServerAddressChange = {}
+    )
 }
