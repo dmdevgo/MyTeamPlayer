@@ -97,6 +97,9 @@ class MyTeamPlayerServer {
                     }
                 }
             }
+            get("/hello") {
+                call.respondText("Hello!")
+            }
             post("/video") {
                 val video = call.receiveParameters().getOrFail("video")
                     .trim()
