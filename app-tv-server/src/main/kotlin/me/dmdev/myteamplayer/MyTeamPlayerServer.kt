@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -36,7 +37,11 @@ import java.util.concurrent.LinkedBlockingQueue
 class MyTeamPlayerServer {
 
     private val playQueue = LinkedBlockingQueue<MyVideo>()
+    private var currentVideo: MyVideo? = null
     private var job: Job? = null
+
+    private var keepRequests = mutableSetOf<String>()
+    private var skipRequests = mutableSetOf<String>()
 
     private val client = HttpClient(OkHttp)
 
@@ -53,11 +58,22 @@ class MyTeamPlayerServer {
     }
 
     fun nextTrack(): String? {
-        return playQueue.poll()?.id
+        currentVideo = playQueue.poll()
+        keepRequests.clear()
+        skipRequests.clear()
+        return currentVideo?.id
+    }
+
+    fun currentTrack(): String? {
+        return currentVideo?.id
     }
 
     fun hasNextTrack(): Boolean {
         return playQueue.isNotEmpty()
+    }
+
+    fun getSkipRate(): Int {
+        return skipRequests.size - keepRequests.size
     }
 
     private val server = embeddedServer(Netty, port = 8080) {
@@ -91,6 +107,48 @@ class MyTeamPlayerServer {
                             }
                         }
 
+                        currentVideo?.let {
+                            h4 {
+                                +" Current video:"
+                            }
+                            p {
+                                +it.title
+                            }
+
+                            p {
+                                form {
+                                    action = "keepVideo"
+                                    method = FormMethod.post
+                                    input {
+                                        type = InputType.hidden
+                                        name = "videoId"
+                                        value = it.id
+                                    }
+                                    input {
+                                        type = InputType.submit
+                                        value = "Keep"
+                                    }
+                                    +" ${keepRequests.size}"
+                                }
+                            }
+                            p {
+                                form {
+                                    action = "skipVideo"
+                                    method = FormMethod.post
+                                    input {
+                                        type = InputType.hidden
+                                        name = "videoId"
+                                        value = it.id
+                                    }
+                                    input {
+                                        type = InputType.submit
+                                        value = "Skip"
+                                    }
+                                    + " ${skipRequests.size}"
+                                }
+                            }
+                        }
+
                         h4 {
                             +"Play queue:"
                         }
@@ -115,6 +173,20 @@ class MyTeamPlayerServer {
                     call.respondRedirect("/")
                 }
             }
+            post("/keepVideo") {
+                keepVideoRequest(
+                    videoId = call.receiveParameters().getOrFail("videoId").trim(),
+                    userId = call.request.origin.remoteHost
+                )
+                call.respondRedirect("/")
+            }
+            post("/skipVideo") {
+                skipVideoRequest(
+                    videoId = call.receiveParameters().getOrFail("videoId").trim(),
+                    userId = call.request.origin.remoteHost
+                )
+                call.respondRedirect("/")
+            }
         }
     }
 
@@ -124,5 +196,19 @@ class MyTeamPlayerServer {
         val responseBody = response.bodyAsText()
         val json = JSONObject(responseBody)
         return json.getString("title")
+    }
+
+    private fun keepVideoRequest(videoId: String, userId: String) {
+        if (currentVideo?.id == videoId) {
+            keepRequests.add(userId)
+            skipRequests.remove(userId)
+        }
+    }
+
+    private fun skipVideoRequest(videoId: String, userId: String) {
+        if (currentVideo?.id == videoId) {
+            keepRequests.remove(userId)
+            skipRequests.add(userId)
+        }
     }
 }
