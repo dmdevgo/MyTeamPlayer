@@ -1,15 +1,9 @@
 package me.dmdev.myteamplayer
 
-import android.util.Log
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.YouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -20,8 +14,13 @@ class MyTeamPlayer(
     private val youTubePlayer: YouTubePlayer
 ) {
 
+    companion object {
+        const val PLAY_TIME_LIMIT: Long = 10L * 60000L // 10 minutes
+    }
+
     private val mainScope = MainScope()
     private var state: State = State.IDLE
+    private var startTime: Long = 0L
 
     fun start() {
         server.start()
@@ -33,9 +32,15 @@ class MyTeamPlayer(
                     if (video != null) {
                         state = State.PLAYING
                         youTubePlayer.loadVideo(video, 0F)
+                        startTime = System.currentTimeMillis()
                     }
                 }
                 delay(1000)
+                if (state == State.PLAYING && startTime != 0L && server.hasNextTrack()) {
+                    if (System.currentTimeMillis() - startTime > PLAY_TIME_LIMIT) {
+                        skipToNext()
+                    }
+                }
             }
         }
     }
@@ -59,6 +64,7 @@ class MyTeamPlayer(
     fun play() {
         state = if (state == State.PAUSED) {
             youTubePlayer.play()
+            startTime = System.currentTimeMillis()
             State.PLAYING
         } else {
             State.IDLE

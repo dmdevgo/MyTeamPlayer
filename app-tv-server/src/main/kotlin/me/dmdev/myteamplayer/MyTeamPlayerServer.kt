@@ -56,6 +56,10 @@ class MyTeamPlayerServer {
         return playQueue.poll()?.id
     }
 
+    fun hasNextTrack(): Boolean {
+        return playQueue.isNotEmpty()
+    }
+
     private val server = embeddedServer(Netty, port = 8080) {
         routing {
             get("/") {
