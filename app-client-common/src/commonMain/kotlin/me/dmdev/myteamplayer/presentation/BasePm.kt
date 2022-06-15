@@ -11,10 +11,11 @@ abstract class BasePm<S>(
     initialState: S,
 ) : PresentationModel(params) {
 
-    private val _state: MutableStateFlow<S> = MutableStateFlow(initialState)
-    val state: StateFlow<S> = _state.asStateFlow()
+    private val _stateFlow: MutableStateFlow<S> = MutableStateFlow(initialState)
+    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
+    val state: S get() = stateFlow.value
 
     protected fun changeState(copy: S.() -> S) {
-        _state.value = copy(_state.value)
+        _stateFlow.value = copy(_stateFlow.value)
     }
 }

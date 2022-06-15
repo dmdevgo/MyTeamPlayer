@@ -5,17 +5,28 @@ plugins {
 }
 
 kotlin {
+
     jvm()
     android()
+
+    val ktorVersion = "2.0.2"
+    val premoVersion = "1.0.0-alpha.05"
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                val premoVersion = "1.0.0-alpha.05"
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
                 api("me.dmdev.premo:premo:$premoVersion")
                 api("me.dmdev.premo:premo-navigation:$premoVersion")
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+            }
+        }
+
+        val androidMain by getting {
+            dependsOn(commonMain)
+            dependencies {
+                implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
             }
         }
     }

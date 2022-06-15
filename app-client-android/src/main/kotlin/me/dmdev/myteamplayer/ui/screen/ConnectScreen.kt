@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import me.dmdev.myteamplayer.ui.theme.custom_green_color
 @Composable
 fun ConnectScreen(
     serverAddress: String,
+    connectEnabled: Boolean,
     isConnecting: Boolean,
     errorMessage: String,
     windowSizes: WindowSizes,
@@ -71,6 +73,9 @@ fun ConnectScreen(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Go,
                     autoCorrect = false
+                ),
+                keyboardActions = KeyboardActions(
+                    onGo = { onConnectClick() }
                 )
             )
             Text(
@@ -83,7 +88,8 @@ fun ConnectScreen(
             )
             Button(
                 modifier = Modifier.align(Alignment.End),
-                onClick = {}
+                enabled = connectEnabled,
+                onClick = onConnectClick
             ) {
                 Text("Connect")
             }
@@ -96,9 +102,10 @@ fun ConnectScreenBind(
     pm: ConnectPm,
     windowSizes: WindowSizes
 ) {
-    val state = pm.state.collectAsState().value
+    val state = pm.stateFlow.collectAsState().value
     ConnectScreen(
         serverAddress = state.serverAddress,
+        connectEnabled = state.connectEnabled,
         isConnecting = state.isConnecting,
         errorMessage = state.errorMessage,
         windowSizes = windowSizes,
@@ -112,6 +119,7 @@ fun ConnectScreenBind(
 fun ConnectScreenPreview() {
     ConnectScreen(
         serverAddress = "0.0.0.0",
+        connectEnabled = true,
         isConnecting = false,
         errorMessage = "No connection",
         windowSizes = WindowSizes.COMPACT,

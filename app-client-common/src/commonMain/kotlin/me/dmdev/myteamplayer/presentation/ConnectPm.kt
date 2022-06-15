@@ -1,17 +1,21 @@
 package me.dmdev.myteamplayer.presentation
 
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import me.dmdev.myteamplayer.domain.connect.ConnectInteractor
+import me.dmdev.myteamplayer.domain.connect.ConnectionResult
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
 
 class ConnectPm(
-    params: PmParams
+    params: PmParams,
+    private val connectInteractor: ConnectInteractor
 ) : BasePm<ConnectPm.State>(
     params,
     State(
         serverAddress = "",
         isConnecting = false,
-        errorMessage = "No connection",
+        errorMessage = "",
     )
 ) {
 
@@ -22,7 +26,10 @@ class ConnectPm(
         val serverAddress: String,
         val isConnecting: Boolean,
         val errorMessage: String,
-    )
+    ) {
+        val connectEnabled: Boolean
+            get() = serverAddress.isNotBlank() && isConnecting.not()
+    }
 
     fun onServerAddressChange(serverAddress: String) {
         changeState {
@@ -34,6 +41,25 @@ class ConnectPm(
     }
 
     fun onConnectClick() {
-        // todo
+        if (state.serverAddress.isNotBlank() && state.isConnecting.not()) {
+            scope.launch {
+                changeState {
+                    copy(
+                        isConnecting = true,
+                        errorMessage = ""
+                    )
+                }
+                val error = when (connectInteractor.connect(state.serverAddress)) {
+                    ConnectionResult.CONNECTION_ERROR -> "Connection error"
+                    else -> ""
+                }
+                changeState {
+                    copy(
+                        isConnecting = false,
+                        errorMessage = error
+                    )
+                }
+            }
+        }
     }
 }
