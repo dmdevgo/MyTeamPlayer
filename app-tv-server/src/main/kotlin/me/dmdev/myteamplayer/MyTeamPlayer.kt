@@ -16,6 +16,8 @@ class MyTeamPlayer(
 
     companion object {
         const val PLAY_TIME_LIMIT: Long = 10L * 60000L // 10 minutes
+        const val CRITICAL_SKIP_RATE = 2
+        const val NORMAL_SKIP_RATE = 0
     }
 
     private val mainScope = MainScope()
@@ -28,16 +30,40 @@ class MyTeamPlayer(
         mainScope.launch {
             while (true) {
                 if (state == State.IDLE) {
-                    val video = server.nextTrack()
+                    val video: String?
+                    val isNew: Boolean
+
+                    when {
+                        server.hasNextTrack() -> {
+                            video = server.nextTrack()
+                            isNew = true
+                        }
+                        server.getSkipRate() < NORMAL_SKIP_RATE -> {
+                            video = server.currentTrack()
+                            isNew = false
+                        }
+                        else -> {
+                            video = null
+                            isNew = false
+                        }
+                    }
+
                     if (video != null) {
                         state = State.PLAYING
                         youTubePlayer.loadVideo(video, 0F)
-                        startTime = System.currentTimeMillis()
+                        if (isNew) {
+                            startTime = System.currentTimeMillis()
+                        }
                     }
                 }
                 delay(1000)
                 if (state == State.PLAYING && startTime != 0L && server.hasNextTrack()) {
-                    if (System.currentTimeMillis() - startTime > PLAY_TIME_LIMIT) {
+                    val isOutFromTimeLimit = System.currentTimeMillis() - startTime > PLAY_TIME_LIMIT
+                    val skipRate = server.getSkipRate()
+                    if (
+                        skipRate >= CRITICAL_SKIP_RATE ||
+                        isOutFromTimeLimit && skipRate > NORMAL_SKIP_RATE
+                    ) {
                         skipToNext()
                     }
                 }
