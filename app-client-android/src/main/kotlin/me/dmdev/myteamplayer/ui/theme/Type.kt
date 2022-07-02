@@ -2,12 +2,18 @@ package me.dmdev.myteamplayer.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import me.dmdev.myteamplayer.R
 
 //Replace with your font locations
 val Roboto = FontFamily.Default
+
+val Roboto_Serif = FontFamily(
+	Font(R.font.roboto_serif_extra_bold_italic)
+)
 
 val AppTypography = Typography(
 	displayLarge = TextStyle(
@@ -53,7 +59,7 @@ val AppTypography = Typography(
 		letterSpacing = 0.sp,
 	),
 	titleLarge = TextStyle(
-		fontFamily = Roboto,
+		fontFamily = Roboto_Serif,
 		fontWeight = FontWeight.W400,
 		fontSize = 22.sp,
 		lineHeight = 28.sp,

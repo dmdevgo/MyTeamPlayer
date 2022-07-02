@@ -5,7 +5,7 @@ import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
 import me.dmdev.premo.PresentationModel
 import me.dmdev.premo.navigation.StackNavigation
-import me.dmdev.premo.navigation.StackNavigator
+import me.dmdev.premo.onMessage
 
 class MainPm(
     params: PmParams
@@ -14,7 +14,12 @@ class MainPm(
     @Serializable
     object Description : PmDescription
 
-    val navigation: StackNavigation = StackNavigator(
+    val navigation: StackNavigation = StackNavigation(
         initialDescription = ConnectPm.Description
-    )
+    ) { navigator ->
+        onMessage<ConnectPm.OnConnectedToServerMessage> {
+            navigator.push(Child(PlayerPm.Description))
+        }
+    }
 }
+

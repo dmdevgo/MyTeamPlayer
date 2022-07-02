@@ -1,6 +1,5 @@
 package me.dmdev.myteamplayer.ui.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,11 +7,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicVideo
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -21,12 +24,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.dmdev.myteamplayer.R
 import me.dmdev.myteamplayer.presentation.ConnectPm
 import me.dmdev.myteamplayer.ui.WindowSizes
 import me.dmdev.myteamplayer.ui.theme.custom_green_color
@@ -51,9 +52,12 @@ fun ConnectScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(R.mipmap.ic_launcher),
-                    contentDescription = "My team player logo"
+                Spacer(modifier = Modifier.width(12.dp))
+                Icon(
+                    Icons.Default.MusicVideo,
+                    "My team player logo",
+                    Modifier.size(36.dp),
+                    custom_green_color
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(

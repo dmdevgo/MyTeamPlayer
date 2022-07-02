@@ -14,6 +14,7 @@ class MainPmFactory : PmFactory {
         return when (val description = params.description) {
             is MainPm.Description -> MainPm(params)
             is ConnectPm.Description -> createConnectPm(params)
+            is PlayerPm.Description -> PlayerPm(params)
             else -> throw IllegalArgumentException(
                 "Not handled instance creation for pm description $description"
             )

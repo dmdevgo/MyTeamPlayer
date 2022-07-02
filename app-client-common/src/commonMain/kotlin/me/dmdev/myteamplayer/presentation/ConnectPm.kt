@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import me.dmdev.myteamplayer.domain.connect.ConnectInteractor
 import me.dmdev.myteamplayer.domain.connect.ConnectionResult
 import me.dmdev.premo.PmDescription
+import me.dmdev.premo.PmMessage
 import me.dmdev.premo.PmParams
 
 class ConnectPm(
@@ -21,6 +22,8 @@ class ConnectPm(
 
     @Serializable
     object Description : PmDescription
+
+    object OnConnectedToServerMessage : PmMessage
 
     data class State(
         val serverAddress: String,
@@ -49,7 +52,9 @@ class ConnectPm(
                         errorMessage = ""
                     )
                 }
-                val error = when (connectInteractor.connect(state.serverAddress)) {
+
+                val result = connectInteractor.connect(state.serverAddress)
+                val error = when (result) {
                     ConnectionResult.CONNECTION_ERROR -> "Connection error"
                     else -> ""
                 }
@@ -58,6 +63,9 @@ class ConnectPm(
                         isConnecting = false,
                         errorMessage = error
                     )
+                }
+                if (result == ConnectionResult.CONNECTED) {
+                    messageHandler.send(OnConnectedToServerMessage)
                 }
             }
         }
