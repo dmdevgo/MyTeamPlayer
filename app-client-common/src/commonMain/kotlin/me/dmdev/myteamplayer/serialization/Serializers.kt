@@ -4,13 +4,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import me.dmdev.myteamplayer.presentation.ConnectPm
 import me.dmdev.myteamplayer.presentation.MainPm
+import me.dmdev.myteamplayer.presentation.PlayerPm
 import me.dmdev.premo.PmDescription
 
 object Serializers {
-
-    val json =  Json {
-        serializersModule = module
-    }
 
     private val module = SerializersModule {
         polymorphic(
@@ -23,5 +20,14 @@ object Serializers {
             ConnectPm.Description::class,
             ConnectPm.Description.serializer()
         )
+        polymorphic(
+            PmDescription::class,
+            PlayerPm.Description::class,
+            PlayerPm.Description.serializer()
+        )
+    }
+
+    val json = Json {
+        serializersModule = module
     }
 }

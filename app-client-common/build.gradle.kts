@@ -10,12 +10,13 @@ kotlin {
     android()
 
     val ktorVersion = "2.0.2"
-    val premoVersion = "1.0.0-alpha.05"
+    val premoVersion = "1.0.0-alpha.06"
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-server-websockets:$ktorVersion")
                 api("me.dmdev.premo:premo:$premoVersion")
                 api("me.dmdev.premo:premo-navigation:$premoVersion")
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")

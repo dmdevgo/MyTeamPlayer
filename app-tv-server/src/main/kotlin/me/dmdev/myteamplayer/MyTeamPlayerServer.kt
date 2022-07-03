@@ -14,9 +14,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -77,6 +80,7 @@ class MyTeamPlayerServer {
     }
 
     private val server = embeddedServer(Netty, port = 8080) {
+        install(WebSockets)
         routing {
             get("/") {
                 call.respondHtml(HttpStatusCode.OK) {
@@ -161,6 +165,23 @@ class MyTeamPlayerServer {
             }
             get("/hello") {
                 call.respondText("Hello!")
+            }
+            webSocket("/player") {
+                try {
+                    for (frame in incoming){
+                        val msg = (frame as Frame.Text).readText()
+                        println("Message: $msg")
+                        when (msg) {
+                            "Hello!" -> send(Frame.Text("Hi!"))
+                            "Bye" -> close(CloseReason(CloseReason.Codes.NORMAL, "Client said BYE"))
+                        }
+                    }
+                } catch (e: ClosedReceiveChannelException) {
+                    println("onClose ${closeReason.await()}")
+                } catch (e: Throwable) {
+                    println("onError ${closeReason.await()}")
+                    e.printStackTrace()
+                }
             }
             post("/video") {
                 val video = call.receiveParameters().getOrFail("video")

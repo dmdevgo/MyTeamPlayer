@@ -23,7 +23,9 @@ class ConnectPm(
     @Serializable
     object Description : PmDescription
 
-    object OnConnectedToServerMessage : PmMessage
+    data class OnConnectedToServerMessage(
+        val serverAddress: String
+    ) : PmMessage
 
     data class State(
         val serverAddress: String,
@@ -65,7 +67,7 @@ class ConnectPm(
                     )
                 }
                 if (result == ConnectionResult.CONNECTED) {
-                    messageHandler.send(OnConnectedToServerMessage)
+                    messageHandler.send(OnConnectedToServerMessage(state.serverAddress))
                 }
             }
         }
