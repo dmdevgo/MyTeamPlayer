@@ -16,3 +16,4 @@ rootProject.name = "MyTeamPlayer"
 include ':app-tv-server'
 include ':app-client-common'
 include ':app-client-android'
+include ':app-common-models'

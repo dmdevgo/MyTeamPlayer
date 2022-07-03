@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicVideo
 import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.VolumeDown
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.VolumeUp
@@ -24,10 +25,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import me.dmdev.myteamplayer.model.PlayerState
+import me.dmdev.myteamplayer.model.Video
+import me.dmdev.myteamplayer.presentation.PlayerPm
 import me.dmdev.myteamplayer.ui.WindowSizes
 import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
 import me.dmdev.myteamplayer.ui.theme.custom_green_color
@@ -35,6 +40,7 @@ import me.dmdev.myteamplayer.ui.theme.custom_green_color
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
+    playerState: PlayerState,
     windowSizes: WindowSizes,
 ) {
 
@@ -62,7 +68,7 @@ fun PlayerScreen(
                         custom_green_color
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Relaxing Jazz Music - Background Chill Out Music - Music For Relax, Study, Work")
+                    Text(text = playerState.video?.title ?: "")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
@@ -73,7 +79,11 @@ fun PlayerScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = {}) {
-                        Icon(Icons.Rounded.Pause, "pause")
+                        if (playerState.isPlaying) {
+                            Icon(Icons.Rounded.Pause, "pause")
+                        } else {
+                            Icon(Icons.Rounded.PlayArrow, "play")
+                        }
                     }
                     IconButton(onClick = {}) {
                         Icon(Icons.Rounded.VolumeDown, "volume down")
@@ -124,6 +134,18 @@ fun PlayerScreen(
 }
 
 @Composable
+fun PlayerScreenBind(
+    pm: PlayerPm,
+    windowSizes: WindowSizes
+) {
+    val state = pm.stateFlow.collectAsState().value
+    PlayerScreen(
+        playerState = state,
+        windowSizes = windowSizes,
+    )
+}
+
+@Composable
 @Preview(
     showBackground = true,
     showSystemUi = true,
@@ -131,6 +153,17 @@ fun PlayerScreen(
 )
 fun PlayerScreenPreview() {
     MyTeamPlayerTheme {
-        PlayerScreen(windowSizes = WindowSizes.COMPACT)
+        PlayerScreen(
+            PlayerState(
+                video = Video(
+                    id = "",
+                    title = "Relaxing Jazz Music - Background Chill Out Music - Music For Relax, Study, Work",
+                    author = "",
+                    thumbnailUrl = "",
+                    durationInSeconds = null
+                )
+            ),
+            windowSizes = WindowSizes.COMPACT,
+        )
     }
 }

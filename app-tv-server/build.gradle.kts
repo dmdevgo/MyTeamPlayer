@@ -42,6 +42,7 @@ android {
 
 dependencies {
     val ktorVersion = "2.0.1"
+    implementation(project(":app-common-models"))
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.leanback:leanback:1.0.0")
     implementation("androidx.media2:media2-session:1.2.1")
@@ -52,6 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
     implementation("io.ktor:ktor-server-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.0.1")
 }

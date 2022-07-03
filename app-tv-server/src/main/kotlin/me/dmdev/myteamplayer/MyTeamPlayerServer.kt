@@ -5,6 +5,7 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
@@ -15,11 +16,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
 import io.ktor.server.websocket.*
-import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -34,14 +35,24 @@ import kotlinx.html.link
 import kotlinx.html.p
 import kotlinx.html.title
 import kotlinx.html.ul
+import kotlinx.serialization.json.Json
+import me.dmdev.myteamplayer.model.PlayerState
+import me.dmdev.myteamplayer.model.Video
 import org.json.JSONObject
 import java.util.concurrent.LinkedBlockingQueue
 
 class MyTeamPlayerServer {
 
-    private val playQueue = LinkedBlockingQueue<MyVideo>()
-    private var currentVideo: MyVideo? = null
-    private var job: Job? = null
+    private var scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val playQueue = LinkedBlockingQueue<Video>()
+    private var playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState(null))
+    private var currentVideo: Video?
+        get() = playerState.value.video
+        set(value) {
+            playerState.value = playerState.value.copy(
+                video = value
+            )
+        }
 
     private var keepRequests = mutableSetOf<String>()
     private var skipRequests = mutableSetOf<String>()
@@ -49,14 +60,14 @@ class MyTeamPlayerServer {
     private val client = HttpClient(OkHttp)
 
     fun start() {
-        job = CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             server.start(wait = true)
         }
     }
 
     fun stop() {
         server.stop(1_000, 2_000)
-        job?.cancel()
+        scope.cancel()
         client.close()
     }
 
@@ -79,8 +90,22 @@ class MyTeamPlayerServer {
         return skipRequests.size - keepRequests.size
     }
 
+    fun updateDuration(duration: Float) {
+        currentVideo = currentVideo?.copy(
+            durationInSeconds = duration.toInt()
+        )
+    }
+
+    fun updateIsPlaying(isPlaying: Boolean) {
+        playerState.value = playerState.value.copy(
+            isPlaying = isPlaying
+        )
+    }
+
     private val server = embeddedServer(Netty, port = 8080) {
-        install(WebSockets)
+        install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
+        }
         routing {
             get("/") {
                 call.respondHtml(HttpStatusCode.OK) {
@@ -168,14 +193,8 @@ class MyTeamPlayerServer {
             }
             webSocket("/player") {
                 try {
-                    for (frame in incoming){
-                        val msg = (frame as Frame.Text).readText()
-                        println("Message: $msg")
-                        when (msg) {
-                            "Hello!" -> send(Frame.Text("Hi!"))
-                            "Bye" -> close(CloseReason(CloseReason.Codes.NORMAL, "Client said BYE"))
-                        }
-                    }
+                    val job = launch { this@webSocket.outputMessages() }
+                    job.join()
                 } catch (e: ClosedReceiveChannelException) {
                     println("onClose ${closeReason.await()}")
                 } catch (e: Throwable) {
@@ -184,13 +203,13 @@ class MyTeamPlayerServer {
                 }
             }
             post("/video") {
-                val video = call.receiveParameters().getOrFail("video")
+                val videoId = call.receiveParameters().getOrFail("video")
                     .trim()
                     .replace("https://youtu.be/", "")
 
-                if (video.isNotBlank()) {
-                    val title = loadVideoTitle(video)
-                    playQueue.offer(MyVideo(title, video))
+                if (videoId.isNotBlank()) {
+                    val video = loadVideo(videoId)
+                    playQueue.offer(video)
                     call.respondRedirect("/")
                 }
             }
@@ -211,12 +230,24 @@ class MyTeamPlayerServer {
         }
     }
 
-    private suspend fun loadVideoTitle(videoId: String): String {
+    private suspend fun DefaultWebSocketServerSession.outputMessages() {
+        playerState.collect {
+            sendSerialized(it)
+        }
+    }
+
+    private suspend fun loadVideo(videoId: String): Video {
         val response: HttpResponse =
             client.get("https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=${videoId}&format=json")
         val responseBody = response.bodyAsText()
         val json = JSONObject(responseBody)
-        return json.getString("title")
+        return Video(
+            id = videoId,
+            title = json.getString("title"),
+            author = json.getString("author_name"),
+            thumbnailUrl = json.getString("thumbnail_url"),
+            durationInSeconds = null,
+        )
     }
 
     private fun keepVideoRequest(videoId: String, userId: String) {
@@ -233,3 +264,4 @@ class MyTeamPlayerServer {
         }
     }
 }
+

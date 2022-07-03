@@ -22,6 +22,11 @@ class MyTeamPlayer(
 
     private val mainScope = MainScope()
     private var state: State = State.IDLE
+        set(value) {
+            server.updateIsPlaying(value == State.PLAYING)
+            field = value
+        }
+
     private var startTime: Long = 0L
 
     fun start() {
@@ -79,7 +84,7 @@ class MyTeamPlayer(
 
     fun stop() {
         youTubePlayer.pause()
-        state = State.STOPED
+        state = State.STOPPED
     }
 
     fun pause() {
@@ -103,7 +108,7 @@ class MyTeamPlayer(
     }
 
     private enum class State {
-        IDLE, PLAYING, PAUSED, STOPED
+        IDLE, PLAYING, PAUSED, STOPPED
     }
 
     private val youTubePlayerListener = object : AbstractYouTubePlayerListener() {
@@ -118,6 +123,10 @@ class MyTeamPlayer(
             if (state == PlayerState.ENDED) {
                 this@MyTeamPlayer.state = State.IDLE
             }
+        }
+
+        override fun onVideoDuration(youTubePlayer: YouTubePlayer, duration: Float) {
+            server.updateDuration(duration)
         }
     }
 }

@@ -23,7 +23,7 @@ fun MainScreen(mainPm: MainPm, windowSizes: WindowSizes) {
     ) { pm ->
         when (pm) {
             is ConnectPm ->  ConnectScreenBind(pm, windowSizes)
-            is PlayerPm -> PlayerScreen(windowSizes)
+            is PlayerPm -> PlayerScreenBind(pm, windowSizes)
             else -> {}
         }
     }
