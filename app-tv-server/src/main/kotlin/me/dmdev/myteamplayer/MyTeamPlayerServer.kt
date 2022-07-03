@@ -19,8 +19,12 @@ import io.ktor.server.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -36,6 +40,7 @@ import kotlinx.html.p
 import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.serialization.json.Json
+import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.model.PlayerState
 import me.dmdev.myteamplayer.model.Video
 import org.json.JSONObject
@@ -53,6 +58,9 @@ class MyTeamPlayerServer {
                 video = value
             )
         }
+
+    private val _commands: MutableSharedFlow<PlayerCommand> = MutableSharedFlow()
+    val commands: SharedFlow<PlayerCommand> = _commands.asSharedFlow()
 
     private var keepRequests = mutableSetOf<String>()
     private var skipRequests = mutableSetOf<String>()
@@ -193,8 +201,10 @@ class MyTeamPlayerServer {
             }
             webSocket("/player") {
                 try {
-                    val job = launch { this@webSocket.outputMessages() }
-                    job.join()
+                    val outputJob = launch { outputMessages() }
+                    val inputJob = launch { inputMessages() }
+                    inputJob.join()
+                    outputJob.cancelAndJoin()
                 } catch (e: ClosedReceiveChannelException) {
                     println("onClose ${closeReason.await()}")
                 } catch (e: Throwable) {
@@ -227,6 +237,13 @@ class MyTeamPlayerServer {
                 )
                 call.respondRedirect("/")
             }
+        }
+    }
+
+    private suspend fun DefaultWebSocketServerSession.inputMessages() {
+        while (true) {
+            val command = receiveDeserialized<PlayerCommand>()
+            _commands.emit(command)
         }
     }
 

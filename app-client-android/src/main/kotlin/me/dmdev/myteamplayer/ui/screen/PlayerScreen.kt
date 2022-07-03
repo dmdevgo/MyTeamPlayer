@@ -42,6 +42,7 @@ import me.dmdev.myteamplayer.ui.theme.custom_green_color
 fun PlayerScreen(
     playerState: PlayerState,
     windowSizes: WindowSizes,
+    onPlayPauseClick: () -> Unit,
 ) {
 
     Column {
@@ -78,7 +79,7 @@ fun PlayerScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onPlayPauseClick) {
                         if (playerState.isPlaying) {
                             Icon(Icons.Rounded.Pause, "pause")
                         } else {
@@ -142,6 +143,7 @@ fun PlayerScreenBind(
     PlayerScreen(
         playerState = state,
         windowSizes = windowSizes,
+        onPlayPauseClick = pm::togglePlayPause
     )
 }
 
@@ -154,7 +156,7 @@ fun PlayerScreenBind(
 fun PlayerScreenPreview() {
     MyTeamPlayerTheme {
         PlayerScreen(
-            PlayerState(
+            playerState = PlayerState(
                 video = Video(
                     id = "",
                     title = "Relaxing Jazz Music - Background Chill Out Music - Music For Relax, Study, Work",
@@ -164,6 +166,7 @@ fun PlayerScreenPreview() {
                 )
             ),
             windowSizes = WindowSizes.COMPACT,
+            onPlayPauseClick = {}
         )
     }
 }

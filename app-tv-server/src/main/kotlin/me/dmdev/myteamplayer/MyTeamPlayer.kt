@@ -8,6 +8,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.dmdev.myteamplayer.model.PlayerCommand
 
 class MyTeamPlayer(
     private val server: MyTeamPlayerServer,
@@ -71,6 +72,18 @@ class MyTeamPlayer(
                     ) {
                         skipToNext()
                     }
+                }
+            }
+        }
+        subscribeToCommands()
+    }
+
+    private fun subscribeToCommands() {
+        mainScope.launch {
+            server.commands.collect {
+                when (it) {
+                    is PlayerCommand.Play -> play()
+                    is PlayerCommand.Pause -> pause()
                 }
             }
         }

@@ -3,6 +3,7 @@ package me.dmdev.myteamplayer.presentation
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.dmdev.myteamplayer.domain.player.PlayerClient
+import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.model.PlayerState
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmLifecycle
@@ -23,6 +24,16 @@ class PlayerPm(
 
     init {
         startPlayer()
+    }
+
+    fun togglePlayPause() {
+        playerClient.sendCommand(
+            if (state.isPlaying) {
+                PlayerCommand.Pause
+            } else {
+                PlayerCommand.Play
+            }
+        )
     }
 
     private fun startPlayer() {
