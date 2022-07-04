@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.format.Formatter
-import android.util.Log
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.YouTubePlayerCallback
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
@@ -15,7 +14,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 
 open class MyTeamPlayerActivity : Activity() {
 
-    private val server = MyTeamPlayerServer()
+    private val server by lazy { MyTeamPlayerServer(this) }
     private lateinit var youTubePlayerView: YouTubePlayerView
     private var player: MyTeamPlayer? = null
     private lateinit var mediaSession: MediaSessionCompat

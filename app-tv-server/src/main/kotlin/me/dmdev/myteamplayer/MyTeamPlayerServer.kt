@@ -1,5 +1,6 @@
 package me.dmdev.myteamplayer
 
+import android.content.Context
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
@@ -9,6 +10,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
+import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
@@ -44,10 +46,14 @@ import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.model.PlayerState
 import me.dmdev.myteamplayer.model.Video
 import org.json.JSONObject
+import java.io.File
 import java.util.concurrent.LinkedBlockingQueue
 
-class MyTeamPlayerServer {
+class MyTeamPlayerServer(
+    private val context: Context
+) {
 
+    private val webFolder = File("${context.filesDir.path}/web")
     private var scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val playQueue = LinkedBlockingQueue<Video>()
     private var playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState(null))
@@ -69,7 +75,21 @@ class MyTeamPlayerServer {
 
     fun start() {
         scope.launch {
+            copeWebFolderFromAssets()
             server.start(wait = true)
+        }
+    }
+
+    private fun copeWebFolderFromAssets() {
+        val folder = "web"
+        val files = context.assets.list(folder)
+        files?.forEach { fileName ->
+            context.assets.open("$folder/$fileName").use { input ->
+                webFolder.mkdir()
+                val file = File("${webFolder.path}/$fileName")
+                file.createNewFile()
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
         }
     }
 
@@ -111,10 +131,21 @@ class MyTeamPlayerServer {
     }
 
     private val server = embeddedServer(Netty, port = 8080) {
+
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json)
         }
         routing {
+            static("/") {
+                staticRootFolder = webFolder
+                file("app-client-web.js")
+            }
+            get("/client") {
+                call.respondText(
+                    File("${webFolder.path}/index.html").readText(),
+                    ContentType.Text.Html
+                )
+            }
             get("/") {
                 call.respondHtml(HttpStatusCode.OK) {
                     head {

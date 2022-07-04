@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -38,6 +40,36 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/*")
     }
+}
+
+tasks.register<Copy>("CopyWebFolder") {
+    val project = project(":app-client-web")
+    val taskName = if (project.hasProperty("isProduction")
+        || project.gradle.startParameter.taskNames.contains("installDist")
+    ) {
+        "jsBrowserProductionWebpack"
+    } else {
+        "jsBrowserDevelopmentWebpack"
+    }
+    val webpackTask = project.tasks.getByName<KotlinWebpack>(taskName)
+    dependsOn(webpackTask)
+    from(
+        File(webpackTask.destinationDirectory, webpackTask.outputFileName),
+        File(project.projectDir, "src/jsMain/resources/index.html")
+    )
+    into("src/main/assets/web/")
+}
+
+tasks.register<Delete>("DeleteWebFolder") {
+    delete("src/main/assets/web/")
+}
+
+tasks.getByName("assemble") {
+    dependsOn(tasks.getByName("CopyWebFolder"))
+}
+
+tasks.getByName("clean") {
+    dependsOn(tasks.getByName("DeleteWebFolder"))
 }
 
 dependencies {
