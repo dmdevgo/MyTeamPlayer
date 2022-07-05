@@ -14,7 +14,9 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 
 open class MyTeamPlayerActivity : Activity() {
 
-    private val server by lazy { MyTeamPlayerServer(this) }
+    private val server by lazy {
+        MyTeamPlayerServer(this, YoutubeRepository())
+    }
     private lateinit var youTubePlayerView: YouTubePlayerView
     private var player: MyTeamPlayer? = null
     private lateinit var mediaSession: MediaSessionCompat

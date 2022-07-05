@@ -1,10 +1,6 @@
 package me.dmdev.myteamplayer
 
 import android.content.Context
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
@@ -45,12 +41,12 @@ import kotlinx.serialization.json.Json
 import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.model.PlayerState
 import me.dmdev.myteamplayer.model.Video
-import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.LinkedBlockingQueue
 
 class MyTeamPlayerServer(
-    private val context: Context
+    private val context: Context,
+    private val youtubeRepository: YoutubeRepository
 ) {
 
     private val webFolder = File("${context.filesDir.path}/web")
@@ -70,8 +66,6 @@ class MyTeamPlayerServer(
 
     private var keepRequests = mutableSetOf<String>()
     private var skipRequests = mutableSetOf<String>()
-
-    private val client = HttpClient(OkHttp)
 
     fun start() {
         scope.launch {
@@ -96,7 +90,6 @@ class MyTeamPlayerServer(
     fun stop() {
         server.stop(1_000, 2_000)
         scope.cancel()
-        client.close()
     }
 
     fun nextTrack(): String? {
@@ -249,7 +242,7 @@ class MyTeamPlayerServer(
                     .replace("https://youtu.be/", "")
 
                 if (videoId.isNotBlank()) {
-                    val video = loadVideo(videoId)
+                    val video = youtubeRepository.loadVideoInfo(videoId)
                     playQueue.offer(video)
                     call.respondRedirect("/")
                 }
@@ -284,20 +277,6 @@ class MyTeamPlayerServer(
         }
     }
 
-    private suspend fun loadVideo(videoId: String): Video {
-        val response: HttpResponse =
-            client.get("https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=${videoId}&format=json")
-        val responseBody = response.bodyAsText()
-        val json = JSONObject(responseBody)
-        return Video(
-            id = videoId,
-            title = json.getString("title"),
-            author = json.getString("author_name"),
-            thumbnailUrl = json.getString("thumbnail_url"),
-            durationInSeconds = null,
-        )
-    }
-
     private fun keepVideoRequest(videoId: String, userId: String) {
         if (currentVideo?.id == videoId) {
             keepRequests.add(userId)
@@ -312,4 +291,3 @@ class MyTeamPlayerServer(
         }
     }
 }
-
