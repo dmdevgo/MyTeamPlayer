@@ -16,13 +16,11 @@ import io.ktor.server.util.*
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
@@ -39,88 +37,31 @@ import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.serialization.json.Json
 import me.dmdev.myteamplayer.model.PlayerCommand
-import me.dmdev.myteamplayer.model.PlayerState
-import me.dmdev.myteamplayer.model.Video
 import java.io.File
-import java.util.concurrent.LinkedBlockingQueue
 
 class MyTeamPlayerServer(
     private val context: Context,
+    private val player: MyTeamPlayer,
     private val youtubeRepository: YoutubeRepository
 ) {
 
     private val webFolder = File("${context.filesDir.path}/web")
+    private var mainScope: CoroutineScope = MainScope()
     private var scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private val playQueue = LinkedBlockingQueue<Video>()
-    private var playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState(null))
-    private var currentVideo: Video?
-        get() = playerState.value.video
-        set(value) {
-            playerState.value = playerState.value.copy(
-                video = value
-            )
-        }
-
     private val _commands: MutableSharedFlow<PlayerCommand> = MutableSharedFlow()
-    val commands: SharedFlow<PlayerCommand> = _commands.asSharedFlow()
-
-    private var keepRequests = mutableSetOf<String>()
-    private var skipRequests = mutableSetOf<String>()
 
     fun start() {
+        subscribeToCommands()
         scope.launch {
             copeWebFolderFromAssets()
             server.start(wait = true)
         }
     }
 
-    private fun copeWebFolderFromAssets() {
-        val folder = "web"
-        val files = context.assets.list(folder)
-        files?.forEach { fileName ->
-            context.assets.open("$folder/$fileName").use { input ->
-                webFolder.mkdir()
-                val file = File("${webFolder.path}/$fileName")
-                file.createNewFile()
-                file.outputStream().use { output -> input.copyTo(output) }
-            }
-        }
-    }
-
     fun stop() {
         server.stop(1_000, 2_000)
         scope.cancel()
-    }
-
-    fun nextTrack(): String? {
-        currentVideo = playQueue.poll()
-        keepRequests.clear()
-        skipRequests.clear()
-        return currentVideo?.id
-    }
-
-    fun currentTrack(): String? {
-        return currentVideo?.id
-    }
-
-    fun hasNextTrack(): Boolean {
-        return playQueue.isNotEmpty()
-    }
-
-    fun getSkipRate(): Int {
-        return skipRequests.size - keepRequests.size
-    }
-
-    fun updateDuration(duration: Float) {
-        currentVideo = currentVideo?.copy(
-            durationInSeconds = duration.toInt()
-        )
-    }
-
-    fun updateIsPlaying(isPlaying: Boolean) {
-        playerState.value = playerState.value.copy(
-            isPlaying = isPlaying
-        )
+        mainScope.cancel()
     }
 
     private val server = embeddedServer(Netty, port = 8080) {
@@ -168,7 +109,7 @@ class MyTeamPlayerServer(
                             }
                         }
 
-                        currentVideo?.let {
+                        player.currentVideo?.let {
                             h4 {
                                 +" Current video:"
                             }
@@ -189,7 +130,7 @@ class MyTeamPlayerServer(
                                         type = InputType.submit
                                         value = "Keep"
                                     }
-                                    +" ${keepRequests.size}"
+                                    +" ${player.keepRequestsCount}"
                                 }
                             }
                             p {
@@ -205,7 +146,7 @@ class MyTeamPlayerServer(
                                         type = InputType.submit
                                         value = "Skip"
                                     }
-                                    + " ${skipRequests.size}"
+                                    + " ${player.skipRequestsCount}"
                                 }
                             }
                         }
@@ -215,7 +156,7 @@ class MyTeamPlayerServer(
                         }
 
                         ul {
-                            playQueue.forEach { li { +it.title } }
+                            player.videosInQueue().forEach { li { +it.title } }
                         }
                     }
                 }
@@ -243,19 +184,19 @@ class MyTeamPlayerServer(
 
                 if (videoId.isNotBlank()) {
                     val video = youtubeRepository.loadVideoInfo(videoId)
-                    playQueue.offer(video)
+                    player.offer(video)
                     call.respondRedirect("/")
                 }
             }
             post("/keepVideo") {
-                keepVideoRequest(
+                player.keepVideoRequest(
                     videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
                 call.respondRedirect("/")
             }
             post("/skipVideo") {
-                skipVideoRequest(
+                player.skipVideoRequest(
                     videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
@@ -272,22 +213,33 @@ class MyTeamPlayerServer(
     }
 
     private suspend fun DefaultWebSocketServerSession.outputMessages() {
-        playerState.collect {
+        player.playerState.collect {
             sendSerialized(it)
         }
     }
 
-    private fun keepVideoRequest(videoId: String, userId: String) {
-        if (currentVideo?.id == videoId) {
-            keepRequests.add(userId)
-            skipRequests.remove(userId)
+    private fun subscribeToCommands() {
+        mainScope.launch {
+            _commands.collect {
+                when (it) {
+                    is PlayerCommand.Play -> player.play()
+                    is PlayerCommand.Pause -> player.pause()
+                    else -> {}
+                }
+            }
         }
     }
 
-    private fun skipVideoRequest(videoId: String, userId: String) {
-        if (currentVideo?.id == videoId) {
-            keepRequests.remove(userId)
-            skipRequests.add(userId)
+    private fun copeWebFolderFromAssets() {
+        val folder = "web"
+        val files = context.assets.list(folder)
+        files?.forEach { fileName ->
+            context.assets.open("$folder/$fileName").use { input ->
+                webFolder.mkdir()
+                val file = File("${webFolder.path}/$fileName")
+                file.createNewFile()
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
         }
     }
 }

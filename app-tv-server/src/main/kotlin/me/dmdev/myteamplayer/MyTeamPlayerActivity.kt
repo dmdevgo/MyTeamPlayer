@@ -14,12 +14,10 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 
 open class MyTeamPlayerActivity : Activity() {
 
-    private val server by lazy {
-        MyTeamPlayerServer(this, YoutubeRepository())
-    }
-    private lateinit var youTubePlayerView: YouTubePlayerView
+    private var server: MyTeamPlayerServer? = null
+    private var youTubePlayerView: YouTubePlayerView? = null
     private var player: MyTeamPlayer? = null
-    private lateinit var mediaSession: MediaSessionCompat
+    private var mediaSession: MediaSessionCompat? = null
 
     private val playbackStateBuilder: PlaybackStateCompat.Builder = PlaybackStateCompat.Builder()
         .setActions(
@@ -35,10 +33,18 @@ open class MyTeamPlayerActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_my_team_player)
         youTubePlayerView = findViewById(R.id.youtube_player_view)
-        youTubePlayerView.getYouTubePlayerWhenReady(object : YouTubePlayerCallback {
+        youTubePlayerView?.getYouTubePlayerWhenReady(object : YouTubePlayerCallback {
             override fun onYouTubePlayer(youTubePlayer: YouTubePlayer) {
-                player = MyTeamPlayer(server, youTubePlayer)
-                player?.start()
+                player = MyTeamPlayer(youTubePlayer).also { player ->
+                    player.start()
+                    server = MyTeamPlayerServer(
+                        this@MyTeamPlayerActivity,
+                        player,
+                        YoutubeRepository()
+                    ).also { server ->
+                        server.start()
+                    }
+                }
             }
         })
         mediaSession = MediaSessionCompat(this, "MyTeamPlayer").apply {
@@ -51,7 +57,8 @@ open class MyTeamPlayerActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         player?.release()
-        youTubePlayerView.release()
+        server?.stop()
+        youTubePlayerView?.release()
     }
 
     private fun getIpAddressInLocalNetwork(): String? {
@@ -63,7 +70,7 @@ open class MyTeamPlayerActivity : Activity() {
         override fun onPlay() {
             super.onPlay()
             player?.play()
-            mediaSession.setPlaybackState(
+            mediaSession?.setPlaybackState(
                 playbackStateBuilder.setState(
                     PlaybackStateCompat.STATE_PLAYING,
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
@@ -75,7 +82,7 @@ open class MyTeamPlayerActivity : Activity() {
         override fun onPause() {
             super.onPause()
             player?.pause()
-            mediaSession.setPlaybackState(
+            mediaSession?.setPlaybackState(
                 playbackStateBuilder.setState(
                     PlaybackStateCompat.STATE_PAUSED,
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
@@ -87,7 +94,7 @@ open class MyTeamPlayerActivity : Activity() {
         override fun onStop() {
             super.onStop()
             player?.stop()
-            mediaSession.setPlaybackState(
+            mediaSession?.setPlaybackState(
                 playbackStateBuilder.setState(
                     PlaybackStateCompat.STATE_STOPPED,
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
@@ -99,7 +106,7 @@ open class MyTeamPlayerActivity : Activity() {
         override fun onSkipToNext() {
             super.onSkipToNext()
             player?.skipToNext()
-            mediaSession.setPlaybackState(
+            mediaSession?.setPlaybackState(
                 playbackStateBuilder.setState(
                     PlaybackStateCompat.STATE_PLAYING,
                     PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,

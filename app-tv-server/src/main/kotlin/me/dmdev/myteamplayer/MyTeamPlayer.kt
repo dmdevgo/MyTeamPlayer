@@ -7,11 +7,12 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import me.dmdev.myteamplayer.model.PlayerCommand
+import me.dmdev.myteamplayer.model.Video
+import java.util.concurrent.LinkedBlockingQueue
 
 class MyTeamPlayer(
-    private val server: MyTeamPlayerServer,
     private val youTubePlayer: YouTubePlayer
 ) {
 
@@ -22,16 +23,37 @@ class MyTeamPlayer(
     }
 
     private val mainScope = MainScope()
+    private val playQueue = LinkedBlockingQueue<Video>()
+    var playerState: MutableStateFlow<me.dmdev.myteamplayer.model.PlayerState> = MutableStateFlow(
+        me.dmdev.myteamplayer.model.PlayerState(null)
+    )
+    var currentVideo: Video?
+        get() = playerState.value.video
+        private set(value) {
+            playerState.value = playerState.value.copy(
+                video = value
+            )
+        }
+
+    private var keepRequests = mutableSetOf<String>()
+    val keepRequestsCount: Int get() = keepRequests.size
+
+    private var skipRequests = mutableSetOf<String>()
+    val skipRequestsCount: Int get() = skipRequests.size
+
+    fun videosInQueue(): List<Video> {
+        return playQueue.toList()
+    }
+
     private var state: State = State.IDLE
         set(value) {
-            server.updateIsPlaying(value == State.PLAYING)
+            updateIsPlaying(value == State.PLAYING)
             field = value
         }
 
     private var startTime: Long = 0L
 
     fun start() {
-        server.start()
         youTubePlayer.addListener(youTubePlayerListener)
         mainScope.launch {
             while (true) {
@@ -40,12 +62,12 @@ class MyTeamPlayer(
                     val isNew: Boolean
 
                     when {
-                        server.hasNextTrack() -> {
-                            video = server.nextTrack()
+                        hasNextTrack() -> {
+                            video = nextTrack()
                             isNew = true
                         }
-                        server.getSkipRate() < NORMAL_SKIP_RATE -> {
-                            video = server.currentTrack()
+                        getSkipRate() < NORMAL_SKIP_RATE -> {
+                            video = currentVideo?.id
                             isNew = false
                         }
                         else -> {
@@ -63,9 +85,9 @@ class MyTeamPlayer(
                     }
                 }
                 delay(1000)
-                if (state == State.PLAYING && startTime != 0L && server.hasNextTrack()) {
+                if (state == State.PLAYING && startTime != 0L && hasNextTrack()) {
                     val isOutFromTimeLimit = System.currentTimeMillis() - startTime > PLAY_TIME_LIMIT
-                    val skipRate = server.getSkipRate()
+                    val skipRate = getSkipRate()
                     if (
                         skipRate >= CRITICAL_SKIP_RATE ||
                         isOutFromTimeLimit && skipRate > NORMAL_SKIP_RATE
@@ -75,22 +97,9 @@ class MyTeamPlayer(
                 }
             }
         }
-        subscribeToCommands()
-    }
-
-    private fun subscribeToCommands() {
-        mainScope.launch {
-            server.commands.collect {
-                when (it) {
-                    is PlayerCommand.Play -> play()
-                    is PlayerCommand.Pause -> pause()
-                }
-            }
-        }
     }
 
     fun release() {
-        server.stop()
         youTubePlayer.removeListener(youTubePlayerListener)
         mainScope.cancel()
     }
@@ -120,6 +129,51 @@ class MyTeamPlayer(
         state = State.IDLE
     }
 
+    fun offer(video: Video) {
+        playQueue.offer(video)
+    }
+
+    fun keepVideoRequest(videoId: String, userId: String) {
+        if (currentVideo?.id == videoId) {
+            keepRequests.add(userId)
+            skipRequests.remove(userId)
+        }
+    }
+
+    fun skipVideoRequest(videoId: String, userId: String) {
+        if (currentVideo?.id == videoId) {
+            keepRequests.remove(userId)
+            skipRequests.add(userId)
+        }
+    }
+
+    private fun updateDuration(duration: Float) {
+        currentVideo = currentVideo?.copy(
+            durationInSeconds = duration.toInt()
+        )
+    }
+
+    private fun updateIsPlaying(isPlaying: Boolean) {
+        playerState.value = playerState.value.copy(
+            isPlaying = isPlaying
+        )
+    }
+
+    private fun nextTrack(): String? {
+        currentVideo = playQueue.poll()
+        keepRequests.clear()
+        skipRequests.clear()
+        return currentVideo?.id
+    }
+
+    private fun hasNextTrack(): Boolean {
+        return playQueue.isNotEmpty()
+    }
+
+    private fun getSkipRate(): Int {
+        return skipRequests.size - keepRequests.size
+    }
+
     private enum class State {
         IDLE, PLAYING, PAUSED, STOPPED
     }
@@ -139,7 +193,7 @@ class MyTeamPlayer(
         }
 
         override fun onVideoDuration(youTubePlayer: YouTubePlayer, duration: Float) {
-            server.updateDuration(duration)
+            updateDuration(duration)
         }
     }
 }
