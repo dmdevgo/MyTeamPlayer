@@ -4,7 +4,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.dmdev.myteamplayer.domain.player.PlayerClient
 import me.dmdev.myteamplayer.model.PlayerCommand
-import me.dmdev.myteamplayer.model.PlayerState
+import me.dmdev.myteamplayer.model.PlayerInfo
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmLifecycle
 import me.dmdev.premo.PmParams
@@ -12,9 +12,9 @@ import me.dmdev.premo.PmParams
 class PlayerPm(
     params: PmParams,
     private val playerClient: PlayerClient
-) : BasePm<PlayerState>(
+) : BasePm<PlayerInfo>(
     params,
-    PlayerState(null)
+    PlayerInfo(null,)
 ) {
 
     @Serializable

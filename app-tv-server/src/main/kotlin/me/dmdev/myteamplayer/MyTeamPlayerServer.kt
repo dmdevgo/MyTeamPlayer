@@ -109,7 +109,7 @@ class MyTeamPlayerServer(
                             }
                         }
 
-                        player.currentVideo?.let {
+                        player.info.video?.let {
                             h4 {
                                 +" Current video:"
                             }
@@ -130,7 +130,7 @@ class MyTeamPlayerServer(
                                         type = InputType.submit
                                         value = "Keep"
                                     }
-                                    +" ${player.keepRequestsCount}"
+                                    +" ${player.info.keepCount}"
                                 }
                             }
                             p {
@@ -146,7 +146,7 @@ class MyTeamPlayerServer(
                                         type = InputType.submit
                                         value = "Skip"
                                     }
-                                    + " ${player.skipRequestsCount}"
+                                    + " ${player.info.skipCount}"
                                 }
                             }
                         }
@@ -156,7 +156,7 @@ class MyTeamPlayerServer(
                         }
 
                         ul {
-                            player.videosInQueue().forEach { li { +it.title } }
+                            player.info.queue.forEach { li { +it.title } }
                         }
                     }
                 }
@@ -189,14 +189,14 @@ class MyTeamPlayerServer(
                 }
             }
             post("/keepVideo") {
-                player.keepVideoRequest(
+                player.keepVideo(
                     videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
                 call.respondRedirect("/")
             }
             post("/skipVideo") {
-                player.skipVideoRequest(
+                player.skipVideo(
                     videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
@@ -213,7 +213,7 @@ class MyTeamPlayerServer(
     }
 
     private suspend fun DefaultWebSocketServerSession.outputMessages() {
-        player.playerState.collect {
+        player.infoFlow.collect {
             sendSerialized(it)
         }
     }

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import me.dmdev.myteamplayer.model.PlayerCommand
-import me.dmdev.myteamplayer.model.PlayerState
+import me.dmdev.myteamplayer.model.PlayerInfo
 
 class PlayerClient(
     private val serverHost: String
@@ -29,8 +29,8 @@ class PlayerClient(
     private val scope = MainScope()
 
     private val commands: MutableSharedFlow<PlayerCommand> = MutableSharedFlow()
-    private val _state: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState(null))
-    val state: StateFlow<PlayerState> get() = _state.asStateFlow()
+    private val _state: MutableStateFlow<PlayerInfo> = MutableStateFlow(PlayerInfo(null,))
+    val state: StateFlow<PlayerInfo> get() = _state.asStateFlow()
 
     fun start() {
         scope.launch {

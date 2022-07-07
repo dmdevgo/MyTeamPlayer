@@ -30,7 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.dmdev.myteamplayer.model.PlayerState
+import me.dmdev.myteamplayer.model.PlayerInfo
 import me.dmdev.myteamplayer.model.Video
 import me.dmdev.myteamplayer.presentation.PlayerPm
 import me.dmdev.myteamplayer.ui.WindowSizes
@@ -40,7 +40,7 @@ import me.dmdev.myteamplayer.ui.theme.custom_green_color
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
-    playerState: PlayerState,
+    info: PlayerInfo,
     windowSizes: WindowSizes,
     onPlayPauseClick: () -> Unit,
 ) {
@@ -69,18 +69,18 @@ fun PlayerScreen(
                         custom_green_color
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = playerState.video?.title ?: "")
+                    Text(text = info.video?.title ?: "")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    progress = 0.9F
+                    progress = info.progressInPercent
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onPlayPauseClick) {
-                        if (playerState.isPlaying) {
+                        if (info.isPlaying) {
                             Icon(Icons.Rounded.Pause, "pause")
                         } else {
                             Icon(Icons.Rounded.PlayArrow, "play")
@@ -101,7 +101,7 @@ fun PlayerScreen(
                     }
                     Spacer(modifier = Modifier.weight(1F))
                     Text(
-                        text = "3:00 / 5:48",
+                        text = "${info.progressFormat} / ${info.durationFormat}",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -111,14 +111,14 @@ fun PlayerScreen(
                         modifier = Modifier.weight(0.3F),
                         onClick = {}
                     ) {
-                        Text("Keep : 2")
+                        Text("Keep : ${info.keepCount}")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedButton(
                         modifier = Modifier.weight(0.3F),
                         onClick = {}
                     ) {
-                        Text("Skip : 1")
+                        Text("Skip : ${info.skipCount}")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedButton(
@@ -141,7 +141,7 @@ fun PlayerScreenBind(
 ) {
     val state = pm.stateFlow.collectAsState().value
     PlayerScreen(
-        playerState = state,
+        info = state,
         windowSizes = windowSizes,
         onPlayPauseClick = pm::togglePlayPause
     )
@@ -156,14 +156,14 @@ fun PlayerScreenBind(
 fun PlayerScreenPreview() {
     MyTeamPlayerTheme {
         PlayerScreen(
-            playerState = PlayerState(
+            info = PlayerInfo(
                 video = Video(
                     id = "",
                     title = "Relaxing Jazz Music - Background Chill Out Music - Music For Relax, Study, Work",
                     author = "",
                     thumbnailUrl = "",
                     durationInSeconds = null
-                )
+                ),
             ),
             windowSizes = WindowSizes.COMPACT,
             onPlayPauseClick = {}
