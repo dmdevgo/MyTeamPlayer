@@ -2,20 +2,15 @@ package me.dmdev.myteamplayer.ui.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicVideo
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -30,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.dmdev.myteamplayer.presentation.ConnectPm
 import me.dmdev.myteamplayer.ui.WindowSizes
-import me.dmdev.myteamplayer.ui.theme.custom_green_color
 
 @Composable
 fun ConnectScreen(
@@ -49,23 +43,9 @@ fun ConnectScreen(
                 .padding(8.dp)
                 .align(Alignment.Center)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    Icons.Default.MusicVideo,
-                    "My team player logo",
-                    Modifier.size(36.dp),
-                    custom_green_color
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "My Team Player",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = custom_green_color
-                )
-            }
+            MyTeamPlayerLogo(
+                modifier = Modifier.padding(start = 16.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 modifier = Modifier.width(300.dp),

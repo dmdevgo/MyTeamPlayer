@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicVideo
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.VolumeDown
@@ -36,7 +34,6 @@ import me.dmdev.myteamplayer.model.Video
 import me.dmdev.myteamplayer.presentation.PlayerPm
 import me.dmdev.myteamplayer.ui.WindowSizes
 import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
-import me.dmdev.myteamplayer.ui.theme.custom_green_color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,31 +50,15 @@ fun PlayerScreen(
 
     Column {
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally),
-            text = "My Team Player",
-            style = MaterialTheme.typography.titleLarge,
-            color = custom_green_color
-        )
+        MyTeamPlayerLogo(modifier = Modifier.fillMaxWidth())
         OutlinedCard(
             Modifier.padding(12.dp)
         ) {
             Column(
                 Modifier.padding(12.dp)
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Row {
-                    Icon(
-                        Icons.Default.MusicVideo,
-                        "My team player logo",
-                        Modifier.size(36.dp),
-                        custom_green_color
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = info.video?.title ?: "")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = info.video?.title ?: "")
+                Spacer(modifier = Modifier.height(12.dp))
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
                     progress = info.progressInPercent
