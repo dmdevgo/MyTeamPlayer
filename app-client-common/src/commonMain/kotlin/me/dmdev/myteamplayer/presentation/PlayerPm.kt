@@ -36,6 +36,40 @@ class PlayerPm(
         )
     }
 
+    fun toggleMute() {
+        playerClient.sendCommand(
+            if (state.volumeOn) {
+                PlayerCommand.Mute
+            } else {
+                PlayerCommand.UnMute
+            }
+        )
+    }
+
+    fun volumeUp() {
+        playerClient.sendCommand(
+            PlayerCommand.SetVolume(state.volume + 5)
+        )
+    }
+
+    fun volumeDown() {
+        playerClient.sendCommand(
+            PlayerCommand.SetVolume(state.volume - 5)
+        )
+    }
+
+    fun keep() {
+        playerClient.sendCommand(
+            PlayerCommand.Keep()
+        )
+    }
+
+    fun skip() {
+        playerClient.sendCommand(
+            PlayerCommand.Skip()
+        )
+    }
+
     private fun startPlayer() {
         lifecycle.addObserver(object : PmLifecycle.Observer {
             override fun onLifecycleChange(lifecycle: PmLifecycle, event: PmLifecycle.Event) {

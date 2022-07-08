@@ -166,6 +166,7 @@ class MyTeamPlayerServer(
             }
             webSocket("/player") {
                 try {
+                    this.call.request.origin.remoteHost
                     val outputJob = launch { outputMessages() }
                     val inputJob = launch { inputMessages() }
                     inputJob.join()
@@ -190,14 +191,12 @@ class MyTeamPlayerServer(
             }
             post("/keepVideo") {
                 player.keepVideo(
-                    videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
                 call.respondRedirect("/")
             }
             post("/skipVideo") {
                 player.skipVideo(
-                    videoId = call.receiveParameters().getOrFail("videoId").trim(),
                     userId = call.request.origin.remoteHost
                 )
                 call.respondRedirect("/")
@@ -207,7 +206,12 @@ class MyTeamPlayerServer(
 
     private suspend fun DefaultWebSocketServerSession.inputMessages() {
         while (true) {
-            val command = receiveDeserialized<PlayerCommand>()
+            var command = receiveDeserialized<PlayerCommand>()
+            command = when (command) {
+                is PlayerCommand.Keep -> PlayerCommand.Keep(call.request.origin.remoteHost)
+                is PlayerCommand.Skip -> PlayerCommand.Skip(call.request.origin.remoteHost)
+                else -> command
+            }
             _commands.emit(command)
         }
     }
@@ -220,10 +224,15 @@ class MyTeamPlayerServer(
 
     private fun subscribeToCommands() {
         mainScope.launch {
-            _commands.collect {
-                when (it) {
+            _commands.collect { command ->
+                when (command) {
                     is PlayerCommand.Play -> player.play()
                     is PlayerCommand.Pause -> player.pause()
+                    is PlayerCommand.Mute -> player.mute()
+                    is PlayerCommand.UnMute -> player.unMute()
+                    is PlayerCommand.SetVolume -> player.setVolume(command.volume)
+                    is PlayerCommand.Keep -> player.keepVideo(command.userId)
+                    is PlayerCommand.Skip -> player.skipVideo(command.userId)
                     else -> {}
                 }
             }

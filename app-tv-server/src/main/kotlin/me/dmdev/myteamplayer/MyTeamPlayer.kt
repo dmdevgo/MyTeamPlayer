@@ -93,28 +93,47 @@ class MyTeamPlayer(
         }
     }
 
-    fun keepVideo(videoId: String, userId: String) {
-        if (info.video?.id == videoId) {
-            keepRequests.add(userId)
-            skipRequests.remove(userId)
-            updatePlayerInfo {
-                copy(
-                    keepCount = keepRequests.size,
-                    skipCount = skipRequests.size,
-                )
-            }
+    fun keepVideo(userId: String) {
+        keepRequests.add(userId)
+        skipRequests.remove(userId)
+        updatePlayerInfo {
+            copy(
+                keepCount = keepRequests.size,
+                skipCount = skipRequests.size,
+            )
         }
     }
 
-    fun skipVideo(videoId: String, userId: String) {
-        if (info.video?.id == videoId) {
-            keepRequests.remove(userId)
-            skipRequests.add(userId)
+    fun skipVideo(userId: String) {
+        keepRequests.remove(userId)
+        skipRequests.add(userId)
+        updatePlayerInfo {
+            copy(
+                keepCount = keepRequests.size,
+                skipCount = skipRequests.size,
+            )
+        }
+    }
+
+    fun mute() {
+        youTubePlayer.mute()
+        updatePlayerInfo {
+            copy(volumeOn = false)
+        }
+    }
+
+    fun unMute() {
+        youTubePlayer.unMute()
+        updatePlayerInfo {
+            copy(volumeOn = true)
+        }
+    }
+
+    fun setVolume(percent: Int) {
+        if (percent in 0..100) {
+            youTubePlayer.setVolume(percent)
             updatePlayerInfo {
-                copy(
-                    keepCount = keepRequests.size,
-                    skipCount = skipRequests.size,
-                )
+                copy(volume = percent)
             }
         }
     }

@@ -20,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -42,7 +43,12 @@ import me.dmdev.myteamplayer.ui.theme.custom_green_color
 fun PlayerScreen(
     info: PlayerInfo,
     windowSizes: WindowSizes,
-    onPlayPauseClick: () -> Unit,
+    onPlayPauseClick: () -> Unit = {},
+    onVolumeOnOffClick: () -> Unit = {},
+    onVolumeUpClick: () -> Unit = {},
+    onVolumeDownClick: () -> Unit = {},
+    onKeepClick: () -> Unit = {},
+    onSkipClick: () -> Unit = {}
 ) {
 
     Column {
@@ -86,18 +92,26 @@ fun PlayerScreen(
                             Icon(Icons.Rounded.PlayArrow, "play")
                         }
                     }
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onVolumeDownClick) {
                         Icon(Icons.Rounded.VolumeDown, "volume down")
                     }
                     Text(
-                        text = "59",
+                        text = info.volume.toString(),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onVolumeUpClick) {
                         Icon(Icons.Rounded.VolumeUp, "volume up")
                     }
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Rounded.VolumeOff, "volume off")
+                    IconButton(onClick = onVolumeOnOffClick) {
+                        Icon(
+                            Icons.Rounded.VolumeOff,
+                            "volume off",
+                            tint = if (info.volumeOn) {
+                                LocalContentColor.current
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
+                        )
                     }
                     Spacer(modifier = Modifier.weight(1F))
                     Text(
@@ -109,23 +123,16 @@ fun PlayerScreen(
                 Row {
                     OutlinedButton(
                         modifier = Modifier.weight(0.3F),
-                        onClick = {}
+                        onClick = onKeepClick
                     ) {
                         Text("Keep : ${info.keepCount}")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedButton(
                         modifier = Modifier.weight(0.3F),
-                        onClick = {}
+                        onClick = onSkipClick
                     ) {
                         Text("Skip : ${info.skipCount}")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedButton(
-                        modifier = Modifier.weight(0.4F),
-                        onClick = {}
-                    ) {
-                        Text("Reactions : 3")
                     }
                 }
             }
@@ -143,7 +150,12 @@ fun PlayerScreenBind(
     PlayerScreen(
         info = state,
         windowSizes = windowSizes,
-        onPlayPauseClick = pm::togglePlayPause
+        onPlayPauseClick = pm::togglePlayPause,
+        onVolumeOnOffClick = pm::toggleMute,
+        onVolumeUpClick = pm::volumeUp,
+        onVolumeDownClick = pm::volumeDown,
+        onKeepClick = pm::keep,
+        onSkipClick = pm::skip,
     )
 }
 
@@ -162,11 +174,12 @@ fun PlayerScreenPreview() {
                     title = "Relaxing Jazz Music - Background Chill Out Music - Music For Relax, Study, Work",
                     author = "",
                     thumbnailUrl = "",
-                    durationInSeconds = null
+                    durationInSeconds = 100
                 ),
+                progressInSeconds = 70,
+                volume = 80
             ),
             windowSizes = WindowSizes.COMPACT,
-            onPlayPauseClick = {}
         )
     }
 }

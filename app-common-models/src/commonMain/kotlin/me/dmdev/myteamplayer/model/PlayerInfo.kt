@@ -9,7 +9,7 @@ data class PlayerInfo(
     val state: State = State.IDLE,
     val progressInSeconds: Int = 0,
     val volumeOn: Boolean = true,
-    val volumeLevel: Int = 0,
+    val volume: Int = 100,
     val keepCount: Int = 0,
     val skipCount: Int = 0,
 ) {
