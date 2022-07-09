@@ -43,19 +43,22 @@ android {
 }
 
 tasks.register<Copy>("CopyWebFolder") {
-    val project = project(":app-client-web")
-    val taskName = if (project.hasProperty("isProduction")
-        || project.gradle.startParameter.taskNames.contains("installDist")
+    val webProject = project(":app-client-web")
+    val androidProject = project(":app-client-android")
+    val taskName = if (webProject.hasProperty("isProduction")
+        || webProject.gradle.startParameter.taskNames.contains("installDist")
     ) {
         "jsBrowserProductionWebpack"
     } else {
         "jsBrowserDevelopmentWebpack"
     }
-    val webpackTask = project.tasks.getByName<KotlinWebpack>(taskName)
+    val webpackTask = webProject.tasks.getByName<KotlinWebpack>(taskName)
     dependsOn(webpackTask)
+    dependsOn(androidProject.tasks.getByName("assemble"))
     from(
         File(webpackTask.destinationDirectory, webpackTask.outputFileName),
-        File(project.projectDir, "src/jsMain/resources/index.html")
+        File(webProject.projectDir, "src/jsMain/resources/index.html"),
+        File(androidProject.projectDir, "build/outputs/apk/debug/app-client-android-debug.apk")
     )
     into("src/main/assets/web/")
 }
@@ -85,6 +88,8 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
     implementation("io.ktor:ktor-server-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-server-partial-content:$ktorVersion")
+    implementation("io.ktor:ktor-server-auto-head-response:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.0.1")

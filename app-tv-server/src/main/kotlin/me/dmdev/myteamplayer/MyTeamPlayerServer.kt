@@ -9,6 +9,8 @@ import io.ktor.server.html.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.autohead.*
+import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.form
 import kotlinx.html.h1
@@ -69,10 +72,26 @@ class MyTeamPlayerServer(
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json)
         }
+        install(PartialContent)
+        install(AutoHeadResponse)
+
         routing {
             static("/") {
                 staticRootFolder = webFolder
                 file("app-client-web.js")
+                file("app-client-android-debug.apk")
+            }
+
+            get("/download/android") {
+                val file = File("${webFolder.path}/app-client-android-debug.apk")
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.Attachment.withParameter(
+                        ContentDisposition.Parameters.FileName,
+                        "my-team-player-debug.apk"
+                    ).toString()
+                )
+                call.respondFile(file)
             }
             get("/client") {
                 call.respondText(
@@ -91,6 +110,11 @@ class MyTeamPlayerServer(
                     body {
                         h1 {
                             +"My Team Player!"
+                        }
+
+                        a {
+                            href = "/download/android"
+                            text("Android apk")
                         }
 
                         form {
