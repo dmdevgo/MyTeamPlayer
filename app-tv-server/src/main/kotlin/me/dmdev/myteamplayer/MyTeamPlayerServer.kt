@@ -39,8 +39,12 @@ import kotlinx.html.p
 import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.serialization.json.Json
+import me.dmdev.myteamplayer.model.AppVersion
+import me.dmdev.myteamplayer.model.AppVersions
+import me.dmdev.myteamplayer.model.Config
 import me.dmdev.myteamplayer.model.PlayerCommand
 import java.io.File
+
 
 class MyTeamPlayerServer(
     private val context: Context,
@@ -48,7 +52,7 @@ class MyTeamPlayerServer(
     private val youtubeRepository: YoutubeRepository
 ) {
 
-    private val webFolder = File("${context.filesDir.path}/web")
+    private val webFolder = File("${context.filesDir.path}/$WEB_FOLDER")
     private var mainScope: CoroutineScope = MainScope()
     private var scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val _commands: MutableSharedFlow<PlayerCommand> = MutableSharedFlow()
@@ -79,11 +83,11 @@ class MyTeamPlayerServer(
             static("/") {
                 staticRootFolder = webFolder
                 file("app-client-web.js")
-                file("app-client-android-debug.apk")
+                file(APK_FILE_NAME)
             }
 
             get("/download/android") {
-                val file = File("${webFolder.path}/app-client-android-debug.apk")
+                val file = File("${webFolder.path}/$APK_FILE_NAME.apk")
                 call.response.header(
                     HttpHeaders.ContentDisposition,
                     ContentDisposition.Attachment.withParameter(
@@ -188,6 +192,9 @@ class MyTeamPlayerServer(
             get("/hello") {
                 call.respondText("Hello!")
             }
+            get("/config") {
+                call.respond(config)
+            }
             webSocket("/player") {
                 try {
                     this.call.request.origin.remoteHost
@@ -264,15 +271,47 @@ class MyTeamPlayerServer(
     }
 
     private fun copeWebFolderFromAssets() {
-        val folder = "web"
-        val files = context.assets.list(folder)
+        val files = context.assets.list(WEB_FOLDER)
         files?.forEach { fileName ->
-            context.assets.open("$folder/$fileName").use { input ->
+            context.assets.open("$WEB_FOLDER/$fileName").use { input ->
                 webFolder.mkdir()
                 val file = File("${webFolder.path}/$fileName")
                 file.createNewFile()
                 file.outputStream().use { output -> input.copyTo(output) }
             }
         }
+    }
+    
+    private val config: Config by lazy {
+        
+        val clientPackageInfo = context.packageManager
+            .getPackageArchiveInfo("${webFolder.path}/$APK_FILE_NAME", 0)
+
+        val androidTvServerPackageInfo = context.packageManager
+            .getPackageInfo(context.packageName, 0)
+        
+        val androidClientVersion = if (clientPackageInfo != null) {
+            AppVersion(clientPackageInfo.versionCode, clientPackageInfo.versionName)
+        } else {
+            AppVersion(0, "")
+        }
+
+        val androidTvServerVersion = if (androidTvServerPackageInfo != null) {
+            AppVersion(androidTvServerPackageInfo.versionCode, androidTvServerPackageInfo.versionName)
+        } else {
+            AppVersion(0, "")
+        }
+        
+        Config(
+            appVersions = AppVersions(
+                androidClient = androidClientVersion,
+                androidTvServer = androidTvServerVersion
+            )
+        )
+    }
+
+    companion object {
+        private const val WEB_FOLDER = "web"
+        private const val APK_FILE_NAME = "app-client-android-debug.apk"
     }
 }
