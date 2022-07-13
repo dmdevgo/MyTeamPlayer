@@ -24,27 +24,10 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
-import kotlinx.html.a
-import kotlinx.html.body
-import kotlinx.html.form
-import kotlinx.html.h1
-import kotlinx.html.h4
-import kotlinx.html.head
-import kotlinx.html.input
-import kotlinx.html.li
-import kotlinx.html.link
-import kotlinx.html.p
-import kotlinx.html.title
-import kotlinx.html.ul
 import kotlinx.serialization.json.Json
-import me.dmdev.myteamplayer.model.AppVersion
-import me.dmdev.myteamplayer.model.AppVersions
-import me.dmdev.myteamplayer.model.Config
-import me.dmdev.myteamplayer.model.PlayerCommand
+import me.dmdev.myteamplayer.model.*
+import me.dmdev.myteamplayer.view.homeView
 import java.io.File
-
 
 class MyTeamPlayerServer(
     private val context: Context,
@@ -105,88 +88,7 @@ class MyTeamPlayerServer(
             }
             get("/") {
                 call.respondHtml(HttpStatusCode.OK) {
-                    head {
-                        title {
-                            +"MyTeamPlayer"
-                        }
-                        link()
-                    }
-                    body {
-                        h1 {
-                            +"My Team Player!"
-                        }
-
-                        a {
-                            href = "/download/android"
-                            text("Android apk")
-                        }
-
-                        form {
-                            action = "video"
-                            method = FormMethod.post
-                            p {
-                                input {
-                                    type = InputType.text
-                                    name = "video"
-                                }
-                            }
-                            p {
-                                input {
-                                    type = InputType.submit
-                                }
-                            }
-                        }
-
-                        player.info.video?.let {
-                            h4 {
-                                +" Current video:"
-                            }
-                            p {
-                                +it.title
-                            }
-
-                            p {
-                                form {
-                                    action = "keepVideo"
-                                    method = FormMethod.post
-                                    input {
-                                        type = InputType.hidden
-                                        name = "videoId"
-                                        value = it.id
-                                    }
-                                    input {
-                                        type = InputType.submit
-                                        value = "Keep"
-                                    }
-                                    +" ${player.info.keepCount}"
-                                }
-                            }
-                            p {
-                                form {
-                                    action = "skipVideo"
-                                    method = FormMethod.post
-                                    input {
-                                        type = InputType.hidden
-                                        name = "videoId"
-                                        value = it.id
-                                    }
-                                    input {
-                                        type = InputType.submit
-                                        value = "Skip"
-                                    }
-                                    + " ${player.info.skipCount}"
-                                }
-                            }
-                        }
-
-                        h4 {
-                            +"Play queue:"
-                        }
-
-                        ul {
-                            player.info.queue.forEach { li { +it.title } }
-                        }
-                    }
+                    homeView(player)
                 }
             }
             get("/hello") {
@@ -210,12 +112,10 @@ class MyTeamPlayerServer(
                 }
             }
             post("/video") {
-                val videoId = call.receiveParameters().getOrFail("video")
-                    .trim()
-                    .replace("https://youtu.be/", "")
-
-                if (videoId.isNotBlank()) {
-                    val video = youtubeRepository.loadVideoInfo(videoId)
+                val video = youtubeRepository.loadVideoInfo(
+                    call.receiveParameters().getOrFail("video")
+                )
+                if (video != null) {
                     player.offer(video)
                     call.respondRedirect("/")
                 }
