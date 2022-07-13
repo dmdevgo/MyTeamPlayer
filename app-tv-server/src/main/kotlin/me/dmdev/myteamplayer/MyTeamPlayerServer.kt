@@ -25,7 +25,10 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import me.dmdev.myteamplayer.model.*
+import me.dmdev.myteamplayer.model.AppVersion
+import me.dmdev.myteamplayer.model.AppVersions
+import me.dmdev.myteamplayer.model.Config
+import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.view.homeView
 import java.io.File
 
@@ -70,7 +73,7 @@ class MyTeamPlayerServer(
             }
 
             get("/download/android") {
-                val file = File("${webFolder.path}/$APK_FILE_NAME.apk")
+                val file = File("${webFolder.path}/$APK_FILE_NAME")
                 call.response.header(
                     HttpHeaders.ContentDisposition,
                     ContentDisposition.Attachment.withParameter(
