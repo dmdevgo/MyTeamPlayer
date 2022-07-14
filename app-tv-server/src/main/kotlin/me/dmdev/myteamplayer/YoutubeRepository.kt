@@ -28,15 +28,17 @@ class YoutubeRepository {
     }
 
     private fun extractVideoId(videoPath: String): String? {
-        val videoUrl = videoPath.toHttpUrlOrNull()
+        val videoUrl = videoPath.toHttpUrlOrNull() ?: return videoPath
+
+        val host = videoUrl.host.trim()
+            .replace(Regex("^[wW]{3}\\."), "") // Remove www from beginning if exists.
 
         return when {
-            videoUrl == null -> videoPath
-            videoUrl.host == "www.youtube.com" && videoUrl.encodedPath == "watch" -> {
+            host == "youtube.com" && videoUrl.encodedPath == "/watch" -> {
                 videoUrl.queryParameter("v")
             }
-            videoUrl.host == "www.youtu.be" && videoUrl.pathSize == 1-> {
-                videoUrl.encodedPath
+            host == "youtu.be" && videoUrl.pathSize == 1 -> {
+                videoUrl.pathSegments[0]
             }
             else -> null
         }
