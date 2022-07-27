@@ -1,12 +1,12 @@
 package me.dmdev.myteamplayer.domain.connect
 
 class ConnectInteractorImpl(
-    private val serverApi: Connector
+    private val connector: Connector
 ) : ConnectInteractor {
 
     override suspend fun connect(address: String): ConnectionResult {
         return try {
-            if (serverApi.connect(address)) {
+            if (connector.connect(address)) {
                 ConnectionResult.CONNECTED
             } else {
                 ConnectionResult.CONNECTION_ERROR

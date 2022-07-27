@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import me.dmdev.myteamplayer.presentation.ConnectPm
-import me.dmdev.myteamplayer.presentation.MainPm
 import me.dmdev.myteamplayer.presentation.PlayerPm
+import me.dmdev.myteamplayer.presentation.main.MainPm
 import me.dmdev.myteamplayer.ui.AnimatedNavigationBox
 import me.dmdev.myteamplayer.ui.WindowSizes
 

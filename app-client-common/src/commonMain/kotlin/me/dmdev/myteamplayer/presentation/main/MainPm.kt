@@ -1,6 +1,8 @@
-package me.dmdev.myteamplayer.presentation
+package me.dmdev.myteamplayer.presentation.main
 
 import kotlinx.serialization.Serializable
+import me.dmdev.myteamplayer.presentation.ConnectPm
+import me.dmdev.myteamplayer.presentation.PlayerPm
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
 import me.dmdev.premo.PresentationModel
