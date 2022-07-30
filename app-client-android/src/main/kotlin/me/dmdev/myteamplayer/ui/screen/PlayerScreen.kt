@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.dmdev.myteamplayer.model.PlayerInfo
 import me.dmdev.myteamplayer.model.Video
-import me.dmdev.myteamplayer.presentation.PlayerPm
+import me.dmdev.myteamplayer.presentation.player.PlayerPm
 import me.dmdev.myteamplayer.ui.WindowSizes
 import me.dmdev.myteamplayer.ui.theme.MyTeamPlayerTheme
 
@@ -128,16 +128,22 @@ fun PlayerScreenBind(
     windowSizes: WindowSizes
 ) {
     val state = pm.stateFlow.collectAsState().value
-    PlayerScreen(
-        info = state,
-        windowSizes = windowSizes,
-        onPlayPauseClick = pm::togglePlayPause,
-        onVolumeOnOffClick = pm::toggleMute,
-        onVolumeUpClick = pm::volumeUp,
-        onVolumeDownClick = pm::volumeDown,
-        onKeepClick = pm::keep,
-        onSkipClick = pm::skip,
-    )
+
+    UpdatesAvailableBind(
+        pm = pm.checkUpdatesPm,
+        windowSizes = windowSizes
+    ) {
+        PlayerScreen(
+            info = state,
+            windowSizes = windowSizes,
+            onPlayPauseClick = pm::togglePlayPause,
+            onVolumeOnOffClick = pm::toggleMute,
+            onVolumeUpClick = pm::volumeUp,
+            onVolumeDownClick = pm::volumeDown,
+            onKeepClick = pm::keep,
+            onSkipClick = pm::skip,
+        )
+    }
 }
 
 @Composable

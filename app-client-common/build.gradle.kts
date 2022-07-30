@@ -19,6 +19,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-websockets:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 api("me.dmdev.premo:premo:$premoVersion")
                 api("me.dmdev.premo:premo-navigation:$premoVersion")
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")

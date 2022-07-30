@@ -3,6 +3,7 @@ package me.dmdev.myteamplayer
 import android.content.Context
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
@@ -10,6 +11,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.autohead.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -62,6 +64,7 @@ class MyTeamPlayerServer(
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json)
         }
+        install(ContentNegotiation) { json() }
         install(PartialContent)
         install(AutoHeadResponse)
 

@@ -1,10 +1,11 @@
-package me.dmdev.myteamplayer.presentation
+package me.dmdev.myteamplayer.presentation.player
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.dmdev.myteamplayer.domain.player.PlayerClient
 import me.dmdev.myteamplayer.model.PlayerCommand
 import me.dmdev.myteamplayer.model.PlayerInfo
+import me.dmdev.myteamplayer.presentation.BasePm
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmLifecycle
 import me.dmdev.premo.PmParams
@@ -21,6 +22,11 @@ class PlayerPm(
     data class Description(
         val serverAddress: String
     ) : PmDescription
+
+    val checkUpdatesPm: CheckUpdatesPm = AttachedChild(
+        description = CheckUpdatesPm.Description,
+        key = "check_updates_pm"
+    )
 
     init {
         startPlayer()

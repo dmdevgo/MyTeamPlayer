@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import me.dmdev.myteamplayer.presentation.main.MainContainer
 import me.dmdev.myteamplayer.presentation.main.MainPm
-import me.dmdev.myteamplayer.presentation.main.MainPmFactory
 import me.dmdev.myteamplayer.serialization.JsonBundleStateSaver
 import me.dmdev.myteamplayer.ui.rememberWindowSizes
 import me.dmdev.myteamplayer.ui.screen.MainScreen
@@ -37,7 +37,7 @@ class MainActivity : PmActivity<MainPm>() {
     override val delegate: PmActivityDelegate<MainPm> = PmActivityDelegate(
         pmActivity = this,
         pmDescription = MainPm.Description,
-        pmFactory = MainPmFactory(),
+        pmFactory = MainContainer(PlatformContainerImpl(this)),
         stateSaver = JsonBundleStateSaver()
     )
 
@@ -47,4 +47,3 @@ class MainActivity : PmActivity<MainPm>() {
         }
     }
 }
-

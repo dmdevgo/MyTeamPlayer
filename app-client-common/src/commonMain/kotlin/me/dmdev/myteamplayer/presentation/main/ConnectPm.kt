@@ -1,9 +1,10 @@
-package me.dmdev.myteamplayer.presentation
+package me.dmdev.myteamplayer.presentation.main
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.dmdev.myteamplayer.domain.connect.ConnectInteractor
 import me.dmdev.myteamplayer.domain.connect.ConnectionResult
+import me.dmdev.myteamplayer.presentation.BasePm
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmMessage
 import me.dmdev.premo.PmParams
