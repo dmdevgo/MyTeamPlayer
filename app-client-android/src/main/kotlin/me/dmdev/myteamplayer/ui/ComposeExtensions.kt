@@ -8,7 +8,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import me.dmdev.premo.ExperimentalPremoApi
 import me.dmdev.premo.PresentationModel
-import me.dmdev.premo.navigation.BackstackChange
+import me.dmdev.premo.navigation.BackStackChange
 import me.dmdev.premo.navigation.StackNavigation
 
 @OptIn(ExperimentalPremoApi::class)
@@ -19,7 +19,7 @@ fun NavigationBox(
     content: @Composable (PresentationModel?) -> Unit
 ) {
     NavigationBox(
-        backstackChange = navigation.backstackChanges.collectAsState(BackstackChange.Empty).value,
+        backstackChange = navigation.backStackChangesFlow.collectAsState(BackStackChange.Nothing).value,
         modifier = modifier,
         content = content,
     )
@@ -28,7 +28,7 @@ fun NavigationBox(
 @OptIn(ExperimentalPremoApi::class)
 @Composable
 fun NavigationBox(
-    backstackChange: BackstackChange,
+    backstackChange: BackStackChange,
     modifier: Modifier = Modifier,
     content: @Composable (PresentationModel?) -> Unit
 ) {
@@ -36,18 +36,18 @@ fun NavigationBox(
     val stateHolder = rememberSaveableStateHolder()
 
     val pm = when (backstackChange) {
-        is BackstackChange.Push -> {
+        is BackStackChange.Push -> {
             stateHolder.removeState(backstackChange.enterPm.tag)
             backstackChange.enterPm
         }
-        is BackstackChange.Pop -> {
+        is BackStackChange.Pop -> {
             stateHolder.removeState(backstackChange.exitPm.tag)
             backstackChange.enterPm
         }
-        is BackstackChange.Set -> {
+        is BackStackChange.Set -> {
             backstackChange.pm
         }
-        is BackstackChange.Empty -> null
+        is BackStackChange.Nothing -> null
     }
 
     Box(modifier) {
@@ -72,17 +72,17 @@ fun AnimatedNavigationBox(
         { _, _ -> fadeOut() },
     content: @Composable (PresentationModel?) -> Unit
 ) {
-    val backStackChange = navigation.backstackChanges.collectAsState(BackstackChange.Empty).value
+    val backStackChange = navigation.backStackChangesFlow.collectAsState(BackStackChange.Nothing).value
 
     AnimatedContent(
         targetState = backStackChange,
         transitionSpec = {
             when (backStackChange) {
-                is BackstackChange.Push -> {
+                is BackStackChange.Push -> {
                     enterTransition(backStackChange.exitPm, backStackChange.enterPm) with
                             exitTransition(backStackChange.exitPm, backStackChange.enterPm)
                 }
-                is BackstackChange.Pop -> {
+                is BackStackChange.Pop -> {
                     popEnterTransition(backStackChange.exitPm, backStackChange.enterPm) with
                             popExitTransition(backStackChange.exitPm, backStackChange.enterPm)
                 }
@@ -91,7 +91,7 @@ fun AnimatedNavigationBox(
                 }
             }
         }
-    ) { backstackChange: BackstackChange ->
+    ) { backstackChange: BackStackChange ->
         NavigationBox(
             backstackChange = backstackChange,
             modifier = modifier,

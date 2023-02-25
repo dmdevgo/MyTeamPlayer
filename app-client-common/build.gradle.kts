@@ -9,28 +9,25 @@ kotlin {
     jvm()
     android()
 
-    val ktorVersion = "2.0.2"
-    val premoVersion = "1.0.0-alpha.06"
-
     sourceSets {
         val commonMain by getting {
             dependencies {
                 api(project(":app-common-models"))
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-websockets:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                api("me.dmdev.premo:premo:$premoVersion")
-                api("me.dmdev.premo:premo-navigation:$premoVersion")
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.server.websockets)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.content.negotiation)
+                api(libs.premo)
+                api(libs.premo.navigation)
+                api(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.serialization.json)
             }
         }
 
         val androidMain by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+                implementation(libs.ktor.client.okhttp)
             }
         }
     }

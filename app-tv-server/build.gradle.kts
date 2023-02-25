@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
@@ -76,22 +78,21 @@ tasks.getByName("clean") {
 }
 
 dependencies {
-    val ktorVersion = "2.0.1"
     implementation(project(":app-common-models"))
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.leanback:leanback:1.0.0")
-    implementation("androidx.media2:media2-session:1.2.1")
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
-    implementation("io.ktor:ktor-server-websockets:$ktorVersion")
-    implementation("io.ktor:ktor-server-partial-content:$ktorVersion")
-    implementation("io.ktor:ktor-server-auto-head-response:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.0.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.leanback)
+    implementation(libs.androidx.media2.session)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.partial.content)
+    implementation(libs.ktor.server.auto.head.response)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.html.builder)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidyoutubeplayer)
 }

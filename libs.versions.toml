@@ -1,0 +1,39 @@
+[versions]
+ktor = "2.2.3"
+premo = "1.0.0-alpha.08"
+compose-ui = "1.3.3"
+
+[libraries]
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
+ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
+ktor-server-html-builder = { group = "io.ktor", name = "ktor-server-html-builder", version.ref = "ktor" }
+ktor-server-partial-content = { group = "io.ktor", name = "ktor-server-partial-content", version.ref = "ktor" }
+ktor-server-auto-head-response = { group = "io.ktor", name = "ktor-server-auto-head-response", version.ref = "ktor" }
+ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+
+premo = { group = "me.dmdev.premo", name = "premo", version.ref =  "premo"}
+premo-navigation = { group = "me.dmdev.premo", name = "premo-navigation", version.ref =  "premo"}
+
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.6.4" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.4.1" }
+
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.9.0" }
+androidx-window = { group = "androidx.window", name = "window", version = "1.0.0" }
+androidx-leanback = { group = "androidx.leanback", name = "leanback", version = "1.0.0" }
+androidx-media2-session = { group = "androidx.media2", name = "media2-session", version = "1.2.1" }
+
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose-ui" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "compose-ui" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose-ui" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.0.1" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.3.1" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.6.1" }
+
+google-material = { group = "com.google.android.material", name = "material", version = "1.8.0" }
+androidyoutubeplayer = { group = "com.pierfrancescosoffritti.androidyoutubeplayer", name = "core", version = "11.1.0" }
