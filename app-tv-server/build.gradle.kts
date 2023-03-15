@@ -95,4 +95,5 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidyoutubeplayer)
+    implementation(libs.google.zxing.core)
 }

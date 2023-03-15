@@ -37,3 +37,4 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 
 google-material = { group = "com.google.android.material", name = "material", version = "1.8.0" }
 androidyoutubeplayer = { group = "com.pierfrancescosoffritti.androidyoutubeplayer", name = "core", version = "11.1.0" }
+google-zxing-core = { group = "com.google.zxing", name = "core", version = "3.4.0" }
